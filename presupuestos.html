@@ -1557,10 +1557,10 @@ async function toggleService(sid, checked) {
         selected[sid] = { ...detail, qty:svc.quantity||1, _base_qty:svc.quantity||1, tipo:_tipo, ambiente:"", descripcion:svc.client_name||`Servicio #${sid}`,
           description_override:"", discount_pct:0, markup_pct:0, extra_material:0, override_total:null, notes_internal:"" };
         // Restore from cache if service was previously removed then re-added
+        const hadCache = !!itemEditsCache[sid];
         restoreItemEdits(sid);
-        // Always override tipo with ambiente from MobCloud (cache may have stale client_name)
-        if (_tipo) selected[sid].tipo = _tipo;
-        selected[sid].ambiente = "";
+        // Only set tipo from MobCloud if user never edited it (no cache)
+        if (!hadCache && _tipo) selected[sid].tipo = _tipo;
         itemOrder.push("svc_" + sid);
         const _opt = detail.optimizations_json || {};
         const _toastParts = [fmt(detail.latest_total_price)];
@@ -1708,7 +1708,9 @@ function cacheItemEdits(sid) {
   itemEditsCache[sid] = {
     tipo: item.tipo, ambiente: item.ambiente, description_override: item.description_override,
     qty: item.qty, extra_material: item.extra_material, discount_pct: item.discount_pct, markup_pct: item.markup_pct,
-    override_total: item.override_total, notes_internal: item.notes_internal
+    override_total: item.override_total, notes_internal: item.notes_internal,
+    _pi_override: item._pi_override || false,
+    _unit_price_usd: item._unit_price_usd, _unit_price: item._unit_price
   };
 }
 function restoreItemEdits(sid) {
