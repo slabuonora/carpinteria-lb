@@ -680,6 +680,7 @@ function autoSaveWIP() {
     try {
       await sbRest('quote_drafts', {
         method: 'POST',
+        filters: 'on_conflict=draft_key',
         body: {
           draft_key: getDraftKey(),
           quote_id: currentQuoteId || null,
