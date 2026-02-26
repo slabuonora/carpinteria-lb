@@ -1554,6 +1554,9 @@ async function toggleService(sid, checked) {
           description_override:"", discount_pct:0, markup_pct:0, extra_material:0, override_total:null, notes_internal:"" };
         // Restore from cache if service was previously removed then re-added
         restoreItemEdits(sid);
+        // Always override tipo with ambiente from MobCloud (cache may have stale client_name)
+        if (_tipo) selected[sid].tipo = _tipo;
+        selected[sid].ambiente = "";
         itemOrder.push("svc_" + sid);
         const _opt = detail.optimizations_json || {};
         const _toastParts = [fmt(detail.latest_total_price)];
