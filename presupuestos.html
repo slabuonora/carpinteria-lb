@@ -332,7 +332,6 @@
           <span id="totalProposalsDisplay" style="font-size:13px;font-weight:600;color:var(--accent);display:none;margin-bottom:8px"></span>
           <div class="filter-bar" id="filterBar" style="display:none">
             <div class="form-group"><label>Buscar cliente</label><input id="filterClient" placeholder="Ej: KATARA" oninput="applyFilters()" /></div>
-            <div class="form-group"><label>Ambiente</label><input id="filterAmbiente" placeholder="Ej: C110" oninput="applyFilters()" /></div>
             <div class="form-group"><label>ID Servicio</label><input id="filterId" placeholder="Ej: 195203" oninput="applyFilters()" /></div>
             <div class="form-group"><label>Vendedor</label><select id="filterSeller" onchange="applyFilters()"><option value="">Todos</option></select></div>
             <div class="form-group"><label>Estado</label><select id="filterStatus" onchange="applyFilters()"><option value="">Todos</option></select></div>
@@ -340,8 +339,8 @@
             <div class="form-group"><label>Hasta</label><input id="filterTo" type="date" onchange="applyFilters()" /></div>
           </div>
           <div class="filter-count" id="filterCount" style="display:none"></div>
-          <div class="table-wrap"><table><thead><tr><th>Sel</th><th>ID</th><th>Cliente</th><th>Ambiente</th><th>Estado</th><th>Vendedor</th><th>Qty</th><th>Fecha</th><th>Precio</th></tr></thead>
-          <tbody id="servicesBody"><tr><td colspan="9" class="empty">Haga clic en "Cargar cotizaciones"</td></tr></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Sel</th><th>ID</th><th>Cliente</th><th>Estado</th><th>Vendedor</th><th>Qty</th><th>Fecha</th><th>Precio</th></tr></thead>
+          <tbody id="servicesBody"><tr><td colspan="8" class="empty">Haga clic en "Cargar cotizaciones"</td></tr></tbody></table></div>
         </div>
 
         <!-- Save bar (always visible in step 2) -->
@@ -1458,15 +1457,13 @@ function populateFilterDropdowns() {
 
 function applyFilters() {
   const cf=(document.getElementById("filterClient").value||"").toLowerCase().trim();
-  const af=(document.getElementById("filterAmbiente").value||"").toLowerCase().trim();
   const idf=(document.getElementById("filterId").value||"").trim();
   const sf=document.getElementById("filterSeller").value;
   const stf=document.getElementById("filterStatus").value;
   const ff=document.getElementById("filterFrom").value;
   const tf=document.getElementById("filterTo").value;
   filteredServices = services.filter(s => {
-    if (cf && !_svcClient(s.client_name).toLowerCase().includes(cf)) return false;
-    if (af && !_svcAmbiente(s.client_name).toLowerCase().includes(af)) return false;
+    if (cf && !(s.client_name||"").toLowerCase().includes(cf)) return false;
     if (idf && !String(s.service_id).includes(idf)) return false;
     if (sf && s.user_name!==sf) return false;
     if (stf && s.status!==stf) return false;
@@ -1485,14 +1482,11 @@ function selectFiltered() {
 }
 function clearSelection() { selected={}; renderServices(); renderItems(); toast("Limpiado","info"); }
 
-function _svcClient(cn) { const n=cn||'--'; const i=n.lastIndexOf(' - '); return i>=0?n.substring(0,i).trim():n; }
-function _svcAmbiente(cn) { const n=cn||''; const i=n.lastIndexOf(' - '); return i>=0?n.substring(i+3).trim():'--'; }
-
 function renderServices() {
   const tbody=document.getElementById("servicesBody");
   const list = filteredServices.length ? filteredServices : (services.length ? [] : null);
-  if (!list) { tbody.innerHTML='<tr><td colspan="9" class="empty">Haga clic en "Cargar cotizaciones"</td></tr>'; return; }
-  if (!list.length) { tbody.innerHTML='<tr><td colspan="9" class="empty">Sin resultados</td></tr>'; return; }
+  if (!list) { tbody.innerHTML='<tr><td colspan="8" class="empty">Haga clic en "Cargar cotizaciones"</td></tr>'; return; }
+  if (!list.length) { tbody.innerHTML='<tr><td colspan="8" class="empty">Sin resultados</td></tr>'; return; }
   tbody.innerHTML = list.map(s => {
     const isSel=!!selected[s.service_id]; const det=selected[s.service_id];
     const priceStr=det?fmt(det.latest_total_price):"--";
@@ -1503,7 +1497,7 @@ function renderServices() {
     ].filter(Boolean).join('\n');
     return `<tr class="${isSel?'selected':''}" data-sid="${s.service_id}">
       <td><input type="checkbox" ${isSel?'checked':''} onchange="toggleService(${s.service_id},this.checked)" /></td>
-      <td>${s.service_id}</td><td>${_svcClient(s.client_name)}</td><td>${_svcAmbiente(s.client_name)}</td><td><span class="status ${mobStatusClass(s.status)}">${mobStatusLabel(s.status)}</span></td>
+      <td>${s.service_id}</td><td>${s.client_name||'--'}</td><td><span class="status ${mobStatusClass(s.status)}">${mobStatusLabel(s.status)}</span></td>
       <td>${s.user_name||'--'}</td><td>${s.quantity??0}</td>
       <td title="${dateTip}">${dateStr}</td>
       <td id="price-${s.service_id}">${priceStr}</td></tr>`;
