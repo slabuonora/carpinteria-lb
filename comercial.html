@@ -1749,7 +1749,9 @@ async function toggleService(sid, checked) {
         toast(`#${sid}: precio actualizado, edits preservados`,"success");
       } else {
         // ── NEW: create from scratch ──
-        selected[sid] = { ...detail, qty:svc.quantity||1, _base_qty:svc.quantity||1, tipo:svc.client_name||"", ambiente:"", descripcion:svc.client_name||`Servicio #${sid}`,
+        const _envNames = (detail.environments||[]).map(e=>e.name).filter(Boolean);
+        const _tipo = _envNames.length ? _envNames.join(', ') : (svc.client_name||"");
+        selected[sid] = { ...detail, qty:svc.quantity||1, _base_qty:svc.quantity||1, tipo:_tipo, ambiente:_envNames.join(', '), descripcion:svc.client_name||`Servicio #${sid}`,
           description_override:"", discount_pct:0, markup_pct:0, extra_material:0, override_total:null, notes_internal:"" };
         // Restore from cache if service was previously removed then re-added
         restoreItemEdits(sid);
