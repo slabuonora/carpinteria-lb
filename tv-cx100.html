@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CX100 — Monitor CNC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --bg-card: #111827;
+    --bg-card-hover: #1a2235;
+    --border: #1e293b;
+    --border-accent: #334155;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-muted: #475569;
+    --accent-green: #10b981;
+    --accent-green-dim: rgba(16,185,129,.15);
+    --accent-amber: #f59e0b;
+    --accent-amber-dim: rgba(245,158,11,.12);
+    --accent-red: #ef4444;
+    --accent-red-dim: rgba(239,68,68,.12);
+    --accent-blue: #3b82f6;
+    --accent-blue-dim: rgba(59,130,246,.12);
+    --accent-cyan: #06b6d4;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0f1524 0%, var(--bg) 100%);
+  }
+  .header-left { display:flex; align-items:center; gap:16px; }
+  .machine-badge {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 20px rgba(6,182,212,.3);
+  }
+  .machine-sub { font-size:13px; color:var(--text-dim); }
+  .header-right { display:flex; align-items:center; gap:20px; font-size:13px; color:var(--text-dim); }
+  .status-dot {
+    width:10px; height:10px; border-radius:50%;
+    display:inline-block; margin-right:6px;
+    animation: pulse 2s infinite;
+  }
+  .status-dot.active { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+  .status-dot.idle { background: var(--accent-amber); box-shadow: 0 0 8px var(--accent-amber); }
+  .status-dot.offline { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
+  @keyframes pulse {
+    0%,100% { opacity:1; } 50% { opacity:.5; }
+  }
+
+  /* ── Layout ── */
+  .dashboard { padding: 20px 24px; display:flex; flex-direction:column; gap:20px; }
+
+  /* ── Status Bar ── */
+  .status-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+  .status-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .status-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .status-card.green::before { background: var(--accent-green); }
+  .status-card.amber::before { background: var(--accent-amber); }
+  .status-card.blue::before { background: var(--accent-blue); }
+  .status-card.cyan::before { background: var(--accent-cyan); }
+
+  .sc-label { font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-dim); margin-bottom:8px; font-weight:600; }
+  .sc-value { font-family:var(--mono); font-size:36px; font-weight:700; line-height:1; }
+  .sc-value.green { color: var(--accent-green); }
+  .sc-value.amber { color: var(--accent-amber); }
+  .sc-value.blue { color: var(--accent-blue); }
+  .sc-value.cyan { color: var(--accent-cyan); }
+  .sc-sub { font-size:13px; color:var(--text-dim); margin-top:6px; font-family:var(--mono); }
+
+  /* ── Main grid ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+  }
+  .card-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon { font-size:16px; }
+
+  /* ── KPI Row ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+  .kpi-item { text-align:center; }
+  .kpi-num { font-family:var(--mono); font-size:28px; font-weight:700; color:var(--text); }
+  .kpi-label { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+
+  /* ── Timeline ── */
+  .timeline-container { height: 80px; position:relative; margin-top:8px; }
+  .timeline-bar {
+    position: absolute;
+    top: 20px;
+    height: 40px;
+    border-radius: 3px;
+    transition: opacity .2s;
+    cursor: default;
+  }
+  .timeline-bar.completed { background: var(--accent-green); opacity:.7; }
+  .timeline-bar.interrupted { background: var(--accent-red); opacity:.7; }
+  .timeline-bar:hover { opacity:1; }
+  .timeline-axis {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+  }
+  .timeline-gridline {
+    position: absolute;
+    top: 10px;
+    bottom: 20px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  /* ── Histogram ── */
+  .histogram { display:flex; align-items:flex-end; gap:3px; height:120px; margin-top:8px; }
+  .hist-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; }
+  .hist-bar {
+    width: 100%;
+    border-radius: 3px 3px 0 0;
+    background: var(--accent-blue);
+    transition: height .5s ease, background .3s;
+    min-height: 2px;
+    position: relative;
+  }
+  .hist-bar.highlight { background: var(--accent-cyan); }
+  .hist-bar-count {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 2px;
+    min-height: 14px;
+  }
+  .hist-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    white-space: nowrap;
+  }
+
+  /* ── Project Table ── */
+  .proj-table { width:100%; border-collapse:collapse; margin-top:8px; }
+  .proj-table th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .proj-table td {
+    padding: 10px 12px;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(30,41,59,.5);
+    font-family: var(--mono);
+  }
+  .proj-table tr:last-child td { border-bottom: none; }
+  .proj-name { font-family: var(--sans); font-weight:600; color:var(--text); }
+  .proj-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .proj-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+    transition: width .8s ease;
+  }
+
+  /* ── Last Pieces ── */
+  .last-pieces { display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; }
+  .lp-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(17,24,39,.5);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: border-color .2s;
+  }
+  .lp-item:first-child { border-color: var(--accent-green); background: var(--accent-green-dim); }
+  .lp-status {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .lp-status.completed { background: var(--accent-green); }
+  .lp-status.interrupted { background: var(--accent-red); }
+  .lp-name { font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lp-time { font-family:var(--mono); font-size:13px; color:var(--accent-cyan); font-weight:600; }
+  .lp-when { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border-accent); border-radius:3px; }
+
+  /* ── Loading ── */
+  .loading {
+    display:flex; align-items:center; justify-content:center;
+    height:100px; color:var(--text-dim); font-size:14px;
+    font-family: var(--mono);
+  }
+  .loading::after {
+    content: '';
+    width: 16px; height: 16px;
+    border: 2px solid var(--border-accent);
+    border-top-color: var(--accent-cyan);
+    border-radius: 50%;
+    margin-left: 10px;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ── Responsive for smaller screens ── */
+  @media (max-width: 1200px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .status-bar { grid-template-columns: 1fr 1fr 1fr; }
+    .kpi-row { grid-template-columns: repeat(5, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .status-bar { grid-template-columns: 1fr; }
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    .sc-value { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ HEADER ═══════ -->
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div class="machine-badge">SCM CX100</div>
+      <div class="machine-sub">Cyflex F900 &mdash; La Buonora</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="machineStatus"><span class="status-dot offline"></span> Conectando...</span>
+    <span id="clockDisplay" style="font-family:var(--mono);font-size:15px;color:var(--text)"></span>
+  </div>
+</div>
+
+<!-- ═══════ DASHBOARD ═══════ -->
+<div class="dashboard">
+
+  <!-- ── Status Cards ── -->
+  <div class="status-bar">
+    <div class="status-card green">
+      <div class="sc-label">Última pieza</div>
+      <div class="sc-value green" id="lastPieceName" style="font-size:22px;word-break:break-all;">—</div>
+      <div class="sc-sub" id="lastPieceInfo">—</div>
+    </div>
+    <div class="status-card cyan">
+      <div class="sc-label">Piezas hoy</div>
+      <div class="sc-value cyan" id="todayPieces">—</div>
+      <div class="sc-sub" id="todayPiecesSub">—</div>
+    </div>
+    <div class="status-card amber">
+      <div class="sc-label">Tiempo mecanizado</div>
+      <div class="sc-value amber" id="todayTime">—</div>
+      <div class="sc-sub" id="todayTimeSub">—</div>
+    </div>
+  </div>
+
+  <!-- ── KPI Row ── -->
+  <div class="card">
+    <div class="card-title"><span class="icon">◈</span> KPIs del día</div>
+    <div class="kpi-row">
+      <div class="kpi-item">
+        <div class="kpi-num" id="kpiAvg">—</div>
+        <div class="kpi-label">Promedio</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-num" id="kpiMedian">—</div>
+        <div class="kpi-label">Mediana</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-num" id="kpiMin">—</div>
+        <div class="kpi-label">Mínimo</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-num" id="kpiMax">—</div>
+        <div class="kpi-label">Máximo</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-num" id="kpiUtil">—</div>
+        <div class="kpi-label">Utilización</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main Grid ── -->
+  <div class="main-grid">
+
+    <!-- Timeline -->
+    <div class="card">
+      <div class="card-title"><span class="icon">▤</span> Timeline del día</div>
+      <div class="timeline-container" id="timelineContainer">
+        <div class="loading">Cargando</div>
+      </div>
+    </div>
+
+    <!-- Histogram -->
+    <div class="card">
+      <div class="card-title"><span class="icon">▥</span> Distribución de ciclos</div>
+      <div class="histogram" id="histogramContainer">
+        <div class="loading">Cargando</div>
+      </div>
+    </div>
+
+    <!-- Last Pieces -->
+    <div class="card">
+      <div class="card-title"><span class="icon">▸</span> Últimas piezas</div>
+      <div class="last-pieces" id="lastPiecesList">
+        <div class="loading">Cargando</div>
+      </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="card">
+      <div class="card-title"><span class="icon">◫</span> Proyectos del día</div>
+      <div id="projectsContainer">
+        <div class="loading">Cargando</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Historical KPIs ── -->
+  <div class="card">
+    <div class="card-title"><span class="icon">◧</span> Histórico (últimos 14 días)</div>
+    <div id="historicalContainer">
+      <div class="loading">Cargando</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG — adjust to match your Supabase project
+// ══════════════════════════════════════════════
+const SUPABASE_URL  = "https://qnjizqowddtvzzfillmo.supabase.co";
+const SUPABASE_ANON = "sb_publishable_Agu_I1nw4mY1qRARQBbaHQ_6lTWsFTh";
+const MACHINE_ID    = "cx100";
+const REFRESH_MS    = 15000; // 15 seconds
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+
+function qs(sel) { return document.querySelector(sel); }
+function fmtSec(s) {
+  if (s == null) return "—";
+  s = Math.round(s);
+  return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`;
+}
+function fmtMin(s) {
+  if (s == null) return "—";
+  const m = Math.round(s / 60);
+  if (m >= 60) { const h = Math.floor(m/60); return `${h}h ${m%60}m`; }
+  return `${m} min`;
+}
+function fmtTime(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleTimeString("es-UY", { hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false });
+}
+function fmtTimeShort(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleTimeString("es-UY", { hour:"2-digit", minute:"2-digit", hour12:false });
+}
+function cleanPieceName(name) {
+  return (name || "").replace(/^\[J\]\s*/, "");
+}
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+// ── Supabase REST helper ──
+async function sbQuery(table, params = "") {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?${params}`;
+  const res = await fetch(url, {
+    headers: {
+      "apikey": SUPABASE_ANON,
+      "Authorization": `Bearer ${SUPABASE_ANON}`,
+      "Accept": "application/json",
+    }
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+// ══════════════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  qs("#clockDisplay").textContent = now.toLocaleTimeString("es-UY", { hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ══════════════════════════════════════════════
+// DATA FETCH
+// ══════════════════════════════════════════════
+
+let todayCycles = [];
+let dailyStats = null;
+let projectData = [];
+let historicalStats = [];
+
+async function fetchAll() {
+  const today = todayStr();
+  try {
+    // 1. Today's cycles
+    todayCycles = await sbQuery("cnc_cycles",
+      `machine_id=eq.${MACHINE_ID}&log_date=eq.${today}&order=started_at.desc`
+    );
+
+    // 2. Today's daily stats (from view)
+    const statsArr = await sbQuery("cnc_daily_stats",
+      `machine_id=eq.${MACHINE_ID}&log_date=eq.${today}`
+    );
+    dailyStats = statsArr.length > 0 ? statsArr[0] : null;
+
+    // 3. Project progress today
+    projectData = await sbQuery("cnc_project_progress",
+      `machine_id=eq.${MACHINE_ID}&log_date=eq.${today}&order=completed_cycles.desc`
+    );
+
+    // 4. Historical (last 14 days)
+    historicalStats = await sbQuery("cnc_daily_stats",
+      `machine_id=eq.${MACHINE_ID}&order=log_date.desc&limit=14`
+    );
+
+    renderAll();
+    updateMachineStatus();
+  } catch (err) {
+    console.error("Fetch error:", err);
+    qs("#machineStatus").innerHTML = `<span class="status-dot offline"></span> Error conexión`;
+  }
+}
+
+// ══════════════════════════════════════════════
+// MACHINE STATUS
+// ══════════════════════════════════════════════
+
+function updateMachineStatus() {
+  const el = qs("#machineStatus");
+  if (!todayCycles.length) {
+    el.innerHTML = `<span class="status-dot idle"></span> Sin actividad hoy`;
+    return;
+  }
+  const last = todayCycles[0]; // most recent (ordered DESC)
+  const lastEnd = new Date(last.ended_at);
+  const ago = Math.round((Date.now() - lastEnd.getTime()) / 1000);
+
+  if (ago < 120) {
+    el.innerHTML = `<span class="status-dot active"></span> Activa`;
+  } else if (ago < 600) {
+    el.innerHTML = `<span class="status-dot idle"></span> Idle (${fmtMin(ago)})`;
+  } else {
+    el.innerHTML = `<span class="status-dot idle"></span> Idle (${fmtMin(ago)})`;
+  }
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+
+function renderAll() {
+  renderStatusCards();
+  renderKPIs();
+  renderTimeline();
+  renderHistogram();
+  renderLastPieces();
+  renderProjects();
+  renderHistorical();
+}
+
+// ── Status Cards ──
+function renderStatusCards() {
+  if (todayCycles.length > 0) {
+    const last = todayCycles[0];
+    qs("#lastPieceName").textContent = cleanPieceName(last.piece_name);
+    const dur = `${fmtSec(last.duration_seconds)} — ${last.status === "completed" ? "✓" : "✗ interrumpida"}`;
+    const time = fmtTime(last.ended_at);
+    qs("#lastPieceInfo").textContent = `${dur}  •  ${time}`;
+  }
+
+  if (dailyStats) {
+    const completed = dailyStats.completed_cycles || 0;
+    const interrupted = dailyStats.interrupted_cycles || 0;
+    qs("#todayPieces").textContent = completed;
+    qs("#todayPiecesSub").textContent = interrupted > 0 ? `+ ${interrupted} interrumpidas` : "todas completadas";
+
+    const totalSec = dailyStats.total_machining_seconds || 0;
+    qs("#todayTime").textContent = fmtMin(totalSec);
+    const utilPct = dailyStats.utilization_pct || 0;
+    qs("#todayTimeSub").textContent = `${utilPct}% utilización`;
+  }
+}
+
+// ── KPIs ──
+function renderKPIs() {
+  if (!dailyStats) return;
+  qs("#kpiAvg").textContent = fmtSec(dailyStats.avg_cycle_seconds);
+  qs("#kpiMedian").textContent = fmtSec(dailyStats.median_cycle_seconds);
+  qs("#kpiMin").textContent = fmtSec(dailyStats.min_cycle_seconds);
+  qs("#kpiMax").textContent = fmtSec(dailyStats.max_cycle_seconds);
+  qs("#kpiUtil").textContent = `${dailyStats.utilization_pct || 0}%`;
+}
+
+// ── Timeline ──
+function renderTimeline() {
+  const container = qs("#timelineContainer");
+  if (!todayCycles.length) {
+    container.innerHTML = `<div style="color:var(--text-muted);font-size:13px;padding:20px;text-align:center;">Sin ciclos hoy</div>`;
+    return;
+  }
+
+  // Time range: 7:00 to 18:00 (or actual range)
+  const completed = todayCycles.filter(c => c.started_at && c.ended_at);
+  if (!completed.length) return;
+
+  const times = completed.map(c => new Date(c.started_at).getTime());
+  const endTimes = completed.map(c => new Date(c.ended_at).getTime());
+  const dayStart = new Date(completed[completed.length-1].started_at);
+  dayStart.setHours(7, 0, 0, 0);
+  const dayEnd = new Date(completed[0].ended_at);
+  dayEnd.setHours(Math.max(dayEnd.getHours() + 1, 18), 0, 0, 0);
+
+  const rangeMs = dayEnd.getTime() - dayStart.getTime();
+
+  let html = '';
+
+  // Gridlines every hour
+  for (let h = dayStart.getHours(); h <= dayEnd.getHours(); h++) {
+    const t = new Date(dayStart);
+    t.setHours(h, 0, 0, 0);
+    const pct = (t.getTime() - dayStart.getTime()) / rangeMs * 100;
+    if (pct >= 0 && pct <= 100) {
+      html += `<div class="timeline-gridline" style="left:${pct}%"></div>`;
+    }
+  }
+
+  // Bars for each cycle
+  completed.forEach(c => {
+    const s = new Date(c.started_at).getTime();
+    const e = new Date(c.ended_at).getTime();
+    const left = Math.max(0, (s - dayStart.getTime()) / rangeMs * 100);
+    const width = Math.max(0.3, (e - s) / rangeMs * 100);
+    const cls = c.status === "completed" ? "completed" : "interrupted";
+    const title = `${cleanPieceName(c.piece_name)}\n${fmtSec(c.duration_seconds)} (${c.status})\n${fmtTime(c.started_at)} → ${fmtTime(c.ended_at)}`;
+    html += `<div class="timeline-bar ${cls}" style="left:${left}%;width:${width}%" title="${title}"></div>`;
+  });
+
+  // Axis labels
+  html += `<div class="timeline-axis">`;
+  for (let h = dayStart.getHours(); h <= dayEnd.getHours(); h += 1) {
+    html += `<span>${String(h).padStart(2,"0")}:00</span>`;
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+
+// ── Histogram ──
+function renderHistogram() {
+  const container = qs("#histogramContainer");
+  const completed = todayCycles.filter(c => c.status === "completed");
+  if (!completed.length) {
+    container.innerHTML = `<div style="color:var(--text-muted);font-size:13px;text-align:center;width:100%;">Sin datos</div>`;
+    return;
+  }
+
+  // Buckets: 0-30, 30-60, 60-90, 90-120, 120-180, 180-300, 300+
+  const buckets = [
+    { min:0, max:30, label:"<30s" },
+    { min:30, max:60, label:"30-60" },
+    { min:60, max:90, label:"60-90" },
+    { min:90, max:120, label:"90-120" },
+    { min:120, max:180, label:"2-3m" },
+    { min:180, max:300, label:"3-5m" },
+    { min:300, max:Infinity, label:">5m" },
+  ];
+
+  const counts = buckets.map(b => ({
+    ...b,
+    count: completed.filter(c => c.duration_seconds >= b.min && c.duration_seconds < b.max).length
+  }));
+
+  const maxCount = Math.max(...counts.map(c => c.count), 1);
+
+  // Find the bucket with the median
+  const medianVal = dailyStats?.median_cycle_seconds;
+  const medianBucket = medianVal != null ?
+    counts.findIndex(b => medianVal >= b.min && medianVal < b.max) : -1;
+
+  container.innerHTML = counts.map((b, i) => {
+    const h = (b.count / maxCount) * 110;
+    const isHighlight = i === medianBucket;
+    return `
+      <div class="hist-bar-wrap">
+        <div class="hist-bar-count">${b.count || ""}</div>
+        <div class="hist-bar${isHighlight ? " highlight" : ""}" style="height:${h}px" title="${b.count} piezas entre ${b.label}"></div>
+        <div class="hist-label">${b.label}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+// ── Last Pieces ──
+function renderLastPieces() {
+  const container = qs("#lastPiecesList");
+  const recent = todayCycles.slice(0, 15);
+  if (!recent.length) {
+    container.innerHTML = `<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px;">Sin piezas hoy</div>`;
+    return;
+  }
+
+  container.innerHTML = recent.map(c => `
+    <div class="lp-item">
+      <div class="lp-status ${c.status}"></div>
+      <div class="lp-name" title="${cleanPieceName(c.piece_name)}">${cleanPieceName(c.piece_name)}</div>
+      <div class="lp-time">${fmtSec(c.duration_seconds)}</div>
+      <div class="lp-when">${fmtTimeShort(c.ended_at)}</div>
+    </div>
+  `).join("");
+}
+
+// ── Projects ──
+function renderProjects() {
+  const container = qs("#projectsContainer");
+  if (!projectData.length) {
+    container.innerHTML = `<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px;">Sin proyectos hoy</div>`;
+    return;
+  }
+
+  const totalCycles = projectData.reduce((s, p) => s + (p.completed_cycles || 0), 0);
+
+  container.innerHTML = `
+    <table class="proj-table">
+      <thead><tr>
+        <th>Proyecto</th>
+        <th>Piezas</th>
+        <th>Tiempo</th>
+        <th>Prom</th>
+        <th style="width:120px">%</th>
+      </tr></thead>
+      <tbody>
+        ${projectData.map(p => {
+          const pct = totalCycles > 0 ? (p.completed_cycles / totalCycles * 100).toFixed(0) : 0;
+          const name = p.project_folder || "(sin carpeta)";
+          return `<tr>
+            <td class="proj-name">${name}</td>
+            <td>${p.completed_cycles}</td>
+            <td>${fmtMin(p.total_seconds)}</td>
+            <td>${fmtSec(p.avg_seconds)}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="proj-bar-bg"><div class="proj-bar-fill" style="width:${pct}%"></div></div>
+                <span style="font-size:12px;color:var(--text-dim);min-width:32px">${pct}%</span>
+              </div>
+            </td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+// ── Historical ──
+function renderHistorical() {
+  const container = qs("#historicalContainer");
+  if (!historicalStats.length) {
+    container.innerHTML = `<div style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px;">Sin historial</div>`;
+    return;
+  }
+
+  const sorted = [...historicalStats].sort((a, b) => a.log_date.localeCompare(b.log_date));
+  const maxPieces = Math.max(...sorted.map(d => d.completed_cycles || 0), 1);
+
+  const dayNames = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+
+  container.innerHTML = `
+    <div style="display:flex;gap:6px;align-items:flex-end;height:140px;margin-top:8px;">
+      ${sorted.map(d => {
+        const pct = ((d.completed_cycles || 0) / maxPieces) * 120;
+        const date = new Date(d.log_date + "T12:00:00");
+        const dayName = dayNames[date.getDay()];
+        const dayNum = date.getDate();
+        const isToday = d.log_date === todayStr();
+        const barColor = isToday ? "var(--accent-cyan)" : "var(--accent-blue)";
+        const title = `${d.log_date}\n${d.completed_cycles} piezas\nAvg: ${Math.round(d.avg_cycle_seconds)}s\nUtil: ${d.utilization_pct}%`;
+        return `
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;" title="${title}">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:4px;">${d.completed_cycles}</div>
+            <div style="width:100%;height:${pct}px;border-radius:4px 4px 0 0;background:${barColor};opacity:${isToday?.9:.6};transition:height .5s;min-height:4px;"></div>
+            <div style="font-family:var(--mono);font-size:10px;color:${isToday?'var(--accent-cyan)':'var(--text-muted)'};margin-top:6px;font-weight:${isToday?700:400};">${dayName}</div>
+            <div style="font-family:var(--mono);font-size:10px;color:${isToday?'var(--accent-cyan)':'var(--text-muted)'};font-weight:${isToday?700:400};">${dayNum}</div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:12px;font-family:var(--mono);">
+      <span style="color:var(--text-dim);">Total: <span style="color:var(--text)">${historicalStats.reduce((s,d)=>s+(d.completed_cycles||0),0)} piezas</span></span>
+      <span style="color:var(--text-dim);">Prom/día: <span style="color:var(--text)">${Math.round(historicalStats.reduce((s,d)=>s+(d.completed_cycles||0),0)/historicalStats.length)} piezas</span></span>
+      <span style="color:var(--text-dim);">Prom ciclo global: <span style="color:var(--text)">${Math.round(historicalStats.reduce((s,d)=>s+(d.avg_cycle_seconds||0),0)/historicalStats.length)}s</span></span>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════
+// MAIN LOOP
+// ══════════════════════════════════════════════
+
+fetchAll();
+setInterval(fetchAll, REFRESH_MS);
+</script>
+</body>
+</html>

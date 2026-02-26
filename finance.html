@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Intelligence · CarpinterIA</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17; --bg2: #111827; --bg3: #1a2235; --bg4: #243049;
+  --tx: #e2e8f0; --tx2: #94a3b8; --tx3: #64748b;
+  --acc: #38bdf8; --acc2: #0ea5e9; --green: #22c55e; --green2: #16a34a;
+  --red: #ef4444; --red2: #dc2626; --amber: #f59e0b; --purple: #a78bfa;
+  --pink: #f472b6; --teal: #2dd4bf;
+  --radius: 12px; --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--tx); min-height:100vh; }
+.mono { font-family:'JetBrains Mono',monospace; }
+
+/* Header */
+.header { background:linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%); border-bottom:1px solid var(--bg4); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; backdrop-filter:blur(12px); }
+.header h1 { font-size:18px; font-weight:700; display:flex; align-items:center; gap:10px; }
+.header h1 span { color:var(--acc); }
+.header-right { display:flex; align-items:center; gap:12px; }
+.sync-badge { font-size:11px; padding:4px 10px; border-radius:20px; background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); }
+.sync-badge.stale { background:rgba(245,158,11,0.15); color:var(--amber); border-color:rgba(245,158,11,0.3); }
+.btn { padding:8px 16px; border-radius:8px; border:1px solid var(--bg4); background:var(--bg3); color:var(--tx); cursor:pointer; font-size:13px; font-family:inherit; font-weight:500; transition:all 0.2s; }
+.btn:hover { background:var(--bg4); border-color:var(--acc); }
+.btn.primary { background:var(--acc2); color:white; border-color:var(--acc); }
+.btn.primary:hover { background:var(--acc); }
+.btn.small { padding:5px 10px; font-size:11px; }
+
+/* Tabs */
+.tabs { display:flex; gap:2px; padding:12px 24px 0; background:var(--bg); overflow-x:auto; }
+.tab { padding:10px 20px; cursor:pointer; font-size:13px; font-weight:500; border-radius:8px 8px 0 0; color:var(--tx3); transition:all 0.2s; border:1px solid transparent; border-bottom:none; white-space:nowrap; }
+.tab:hover { color:var(--tx2); background:var(--bg2); }
+.tab.active { color:var(--acc); background:var(--bg2); border-color:var(--bg4); }
+
+/* Main */
+.main { padding:20px 24px; max-width:1600px; margin:0 auto; }
+.section { display:none; }
+.section.active { display:block; }
+
+/* Grid */
+.grid { display:grid; gap:16px; }
+.g2 { grid-template-columns:repeat(2,1fr); }
+.g3 { grid-template-columns:repeat(3,1fr); }
+.g4 { grid-template-columns:repeat(4,1fr); }
+@media(max-width:1200px) { .g4 { grid-template-columns:repeat(2,1fr); } }
+@media(max-width:768px) { .g2,.g3,.g4 { grid-template-columns:1fr; } }
+
+/* Cards */
+.card { background:var(--bg2); border:1px solid var(--bg4); border-radius:var(--radius); padding:20px; }
+.card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.card-head h3 { font-size:14px; font-weight:600; color:var(--tx2); text-transform:uppercase; letter-spacing:0.5px; }
+.card-head .badge { font-size:11px; padding:3px 8px; border-radius:12px; font-weight:500; }
+
+/* KPI Cards */
+.kpi { background:var(--bg2); border:1px solid var(--bg4); border-radius:var(--radius); padding:20px; position:relative; overflow:hidden; }
+.kpi::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.kpi.blue::after { background:linear-gradient(90deg,var(--acc),var(--purple)); }
+.kpi.green::after { background:linear-gradient(90deg,var(--green),var(--teal)); }
+.kpi.red::after { background:linear-gradient(90deg,var(--red),var(--pink)); }
+.kpi.amber::after { background:linear-gradient(90deg,var(--amber),#fb923c); }
+.kpi-label { font-size:12px; color:var(--tx3); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+.kpi-value { font-size:28px; font-weight:700; line-height:1.1; }
+.kpi-sub { font-size:12px; color:var(--tx3); margin-top:6px; }
+.kpi-value.sm { font-size:20px; }
+
+/* Tables */
+.tbl { width:100%; border-collapse:collapse; font-size:13px; }
+.tbl th { text-align:left; padding:8px 10px; color:var(--tx3); font-weight:500; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--bg4); }
+.tbl td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.04); }
+.tbl tr:hover td { background:rgba(56,189,248,0.04); }
+.tbl .num { text-align:right; font-family:'JetBrains Mono',monospace; font-size:12px; }
+
+/* Risk badges */
+.risk { padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.risk.bajo { background:rgba(34,197,94,0.15); color:var(--green); }
+.risk.medio { background:rgba(56,189,248,0.15); color:var(--acc); }
+.risk.alto { background:rgba(245,158,11,0.15); color:var(--amber); }
+.risk.critico { background:rgba(239,68,68,0.15); color:var(--red); }
+
+/* Alerts */
+.alert-card { padding:14px 16px; border-radius:10px; margin-bottom:8px; border-left:4px solid; cursor:pointer; transition:all 0.2s; }
+.alert-card:hover { transform:translateX(4px); }
+.alert-card.critical { background:rgba(239,68,68,0.08); border-color:var(--red); }
+.alert-card.warning { background:rgba(245,158,11,0.08); border-color:var(--amber); }
+.alert-card.info { background:rgba(56,189,248,0.08); border-color:var(--acc); }
+.alert-card.opportunity { background:rgba(34,197,94,0.08); border-color:var(--green); }
+.alert-title { font-weight:600; font-size:13px; margin-bottom:4px; }
+.alert-desc { font-size:12px; color:var(--tx2); }
+.alert-rec { font-size:11px; color:var(--tx3); margin-top:6px; font-style:italic; }
+.alert-actions { display:flex; gap:6px; margin-top:8px; }
+
+/* Progress bar */
+.pbar { height:8px; background:var(--bg4); border-radius:4px; overflow:hidden; }
+.pbar-fill { height:100%; border-radius:4px; transition:width 0.6s ease; }
+
+/* Chart containers */
+.chart-wrap { position:relative; height:300px; }
+.chart-wrap.sm { height:200px; }
+
+/* Loading */
+.loading { display:flex; align-items:center; justify-content:center; padding:40px; color:var(--tx3); }
+.spinner { width:20px; height:20px; border:2px solid var(--bg4); border-top-color:var(--acc); border-radius:50%; animation:spin 0.8s linear infinite; margin-right:10px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* Insight cards */
+.insight { padding:12px 16px; background:var(--bg3); border-radius:8px; font-size:13px; color:var(--tx2); margin-bottom:8px; line-height:1.5; border-left:3px solid var(--acc); }
+
+/* Client modal */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; justify-content:center; align-items:flex-start; padding:40px; overflow-y:auto; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--bg2); border:1px solid var(--bg4); border-radius:var(--radius); width:100%; max-width:900px; padding:24px; }
+.modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.modal-close { background:none; border:none; color:var(--tx3); font-size:20px; cursor:pointer; }
+
+/* Tooltips educativos */
+
+/* Audit section */
+.audit-score{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.audit-sc{flex:1;min-width:180px;background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:16px;text-align:center;position:relative;overflow:hidden}
+.audit-sc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.audit-sc.red::after{background:var(--red)}.audit-sc.amber::after{background:var(--amber)}.audit-sc.green::after{background:var(--green)}
+.audit-sc .num{font-size:28px;font-weight:700;margin:4px 0}
+.audit-sc .lbl{font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:0.5px}
+.audit-sc .sub{font-size:11px;color:var(--tx3);margin-top:2px}
+.finding{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:16px;margin-bottom:10px;border-left:4px solid var(--bg4)}
+.finding.f-critical{border-left-color:var(--red)}.finding.f-warning{border-left-color:var(--amber)}.finding.f-info{border-left-color:var(--acc)}.finding.f-ok{border-left-color:var(--green)}
+.finding-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.finding-title{font-weight:600;font-size:13px}
+.finding p{font-size:12px;color:var(--tx2);margin:4px 0;line-height:1.6}
+.finding code{background:var(--bg4);padding:1px 5px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace}
+.finding .act{background:var(--bg3);border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;border-left:3px solid var(--acc);color:var(--tx2)}
+.finding .act b{color:var(--acc)}
+.audit-inv{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
+.audit-inv th{text-align:left;padding:6px 8px;color:var(--tx3);font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--bg4)}
+.audit-inv td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.audit-inv .num{text-align:right;font-family:'JetBrains Mono',monospace}
+.audit-inv .zero{color:var(--red);font-weight:600}
+.audit-inv .ok{color:var(--green)}
+.audit-h2{font-size:15px;font-weight:700;margin:24px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--bg4)}
+.trust-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:16px;margin:12px 0}
+.trust-box h4{font-size:13px;font-weight:600;margin-bottom:8px}
+.trust-box.good{border-color:rgba(34,197,94,0.3)}.trust-box.bad{border-color:rgba(239,68,68,0.3)}
+.trust-box p{font-size:12px;color:var(--tx2);margin:4px 0}
+.pri-list{counter-reset:pri}
+.pri-item{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);padding:12px 12px 12px 48px;margin-bottom:8px;position:relative}
+.pri-item::before{counter-increment:pri;content:counter(pri);position:absolute;left:12px;top:12px;width:24px;height:24px;border-radius:50%;background:var(--acc);color:var(--bg);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.pri-item h4{font-size:13px;font-weight:600;margin-bottom:2px}
+.pri-item p{font-size:12px;color:var(--tx2)}
+.eff{display:inline-block;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:500;margin-top:4px}
+.eff.low{background:rgba(34,197,94,0.15);color:var(--green)}.eff.med{background:rgba(245,158,11,0.15);color:var(--amber)}
+
+.tip { position:relative; display:inline-flex; align-items:center; }
+.tip-icon { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; border-radius:50%; background:rgba(56,189,248,0.15); color:var(--acc); font-size:10px; font-weight:700; cursor:help; margin-left:6px; flex-shrink:0; border:1px solid rgba(56,189,248,0.3); transition:all 0.2s; }
+.tip-icon:hover { background:rgba(56,189,248,0.3); transform:scale(1.15); }
+#tipFloat { display:none; position:fixed; z-index:9999; background:var(--bg3); border:1px solid var(--acc); border-radius:10px; padding:14px 16px; width:320px; max-width:90vw; box-shadow:0 12px 40px rgba(0,0,0,0.7); }
+#tipFloat::after { content:''; position:absolute; border:6px solid transparent; left:50%; transform:translateX(-50%); }
+#tipFloat.above::after { top:100%; border-top-color:var(--acc); }
+#tipFloat.below::after { bottom:100%; border-bottom-color:var(--acc); }
+.tip-title { font-size:13px; font-weight:700; color:var(--acc); margin-bottom:6px; }
+.tip-text { font-size:12px; color:var(--tx); line-height:1.6; }
+.tip-text b { color:var(--green); font-weight:600; }
+.tip-text .bad { color:var(--red); }
+.tip-text .warn { color:var(--amber); }
+.tip-example { font-size:11px; color:var(--tx3); margin-top:8px; padding-top:8px; border-top:1px solid var(--bg4); font-style:italic; }
+body.tips-off .tip-icon { display:none !important; }
+</style>
+</head>
+<body>
+<div id="tipFloat"></div>
+
+<div class="header">
+  <h1>📊 <span>Finance Intelligence</span> · CarpinterIA</h1>
+  <div class="header-right">
+    <div class="sync-badge" id="syncBadge">Cargando...</div>
+    <button class="btn small" onclick="runIntelligence()">🧠 Analizar</button>
+    <button class="btn small" onclick="takeSnapshot()">📸 Snapshot</button>
+    <button class="help-toggle" id="helpBtn" onclick="toggleHelp()">❓ Ayuda ON</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview')">Resumen</div>
+  <div class="tab" onclick="showTab('aging')">Aging CxC</div>
+  <div class="tab" onclick="showTab('cxp')">CxP</div>
+  <div class="tab" onclick="showTab('forecast')">Forecast</div>
+  <div class="tab" onclick="showTab('alerts')">Alertas</div>
+  <div class="tab" onclick="showTab('concentration')">Concentración</div>
+  <div class="tab" onclick="showTab('audit')" style="color:var(--amber)">🔍 Auditoría</div>
+</div>
+
+<div class="main">
+  <!-- OVERVIEW -->
+  <div class="section active" id="sec-overview">
+    <div class="grid g4" id="kpiGrid" style="margin-bottom:20px;"></div>
+    <div class="grid g2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-head"><h3>Aging CxC (USD) ${TIPS.aging}</h3></div>
+        <div class="chart-wrap sm"><canvas id="chartAging"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Alertas Activas</h3></div>
+        <div id="alertsOverview" style="max-height:240px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-head"><h3>Top Deudores</h3></div>
+        <div id="topDeudores" style="max-height:320px;overflow-y:auto;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Top Proveedores</h3></div>
+        <div id="topProveedores" style="max-height:320px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGING -->
+  <div class="section" id="sec-aging">
+    <div class="grid g3" id="agingKpis" style="margin-bottom:20px;"></div>
+    <div class="grid g2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-head"><h3>Aging por Tramo (USD)</h3></div>
+        <div class="chart-wrap"><canvas id="chartAgingDetail"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Provisión por Tramo</h3></div>
+        <div class="chart-wrap"><canvas id="chartProvision"></canvas></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-head"><h3>Insights del Experto</h3></div>
+      <div id="agingInsights"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Clientes por Riesgo</h3></div>
+      <div id="agingClients" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+
+  <!-- CxP -->
+  <div class="section" id="sec-cxp">
+    <div class="card">
+      <div class="card-head"><h3>Cuentas por Pagar</h3></div>
+      <div id="cxpTable" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+
+  <!-- FORECAST -->
+  <div class="section" id="sec-forecast">
+    <div class="grid g3" id="forecastParams" style="margin-bottom:20px;"></div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-head">
+        <h3>Proyección de Cash Flow ${TIPS.forecast}</h3>
+        <div>
+          <button class="btn small" onclick="loadForecast(90)">90d</button>
+          <button class="btn small" onclick="loadForecast(180)">180d</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartForecast"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div class="section" id="sec-alerts">
+    <div class="card">
+      <div class="card-head">
+        <h3>Motor de Inteligencia Financiera</h3>
+        <button class="btn primary small" onclick="runIntelligence()">🧠 Ejecutar Análisis</button>
+      </div>
+      <div id="alertsFull"></div>
+    </div>
+  </div>
+
+  <!-- CONCENTRATION -->
+  <div class="section" id="sec-concentration">
+    <div class="grid g3" id="concKpis" style="margin-bottom:20px;"></div>
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-head"><h3>Curva de Concentración (Pareto)</h3></div>
+        <div class="chart-wrap"><canvas id="chartConc"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Distribución por Cliente</h3></div>
+        <div class="chart-wrap"><canvas id="chartConcPie"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIT -->
+  <div class="section" id="sec-audit">
+    <div id="auditContent"><div class="loading"><div class="spinner"></div>Ejecutando auditoría...</div></div>
+  </div>
+</div>
+<div class="modal-overlay" id="clientModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalClientName" style="font-size:18px;">Cliente</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div id="modalContent"><div class="loading"><div class="spinner"></div>Cargando perfil...</div></div>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://qnjizqowddtvzzfillmo.supabase.co'
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuaml6cW93ZGR0dnp6ZmlsbG1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTcyMDMsImV4cCI6MjA1MzEzMzIwM30.jM4FMm4Ey_JD-5lcTrkWxHpAtpkXJScFIl3WJnEcjJk'
+const INT_URL = `${SB_URL}/functions/v1/finance-intelligence`
+const FIN_URL = `${SB_URL}/functions/v1/finance-agent-api-v2`
+const hdr = {'Content-Type':'application/json','Authorization':`Bearer ${SB_KEY}`,'apikey':SB_KEY}
+
+let charts = {}
+const fmt = (n,d=0) => n !== undefined && n !== null ? Number(n).toLocaleString('es-UY',{minimumFractionDigits:d,maximumFractionDigits:d}) : '0'
+const fmtK = (n) => { if(!n)return'0';if(Math.abs(n)>=1e6)return(n/1e6).toFixed(1)+'M';if(Math.abs(n)>=1e3)return(n/1e3).toFixed(0)+'K';return fmt(n) }
+
+// Tooltip helper — stores content in data attribute, rendered by floating div
+function tip(title, text, example) {
+  const content = `<div class="tip-title">${title}</div><div class="tip-text">${text}</div>${example?`<div class="tip-example">${example}</div>`:''}`
+  const encoded = content.replace(/"/g,'&quot;')
+  return `<span class="tip"><span class="tip-icon" data-tip="${encoded}">?</span></span>`
+}
+
+// Floating tooltip positioning
+const tipEl = document.getElementById('tipFloat')
+document.addEventListener('mouseover', e => {
+  const icon = e.target.closest('.tip-icon')
+  if(!icon || !icon.dataset.tip) return
+  tipEl.innerHTML = icon.dataset.tip
+  tipEl.style.display = 'block'
+  const r = icon.getBoundingClientRect()
+  const tw = 320, margin = 10
+  let left = r.left + r.width/2 - tw/2
+  if(left < margin) left = margin
+  if(left + tw > window.innerWidth - margin) left = window.innerWidth - margin - tw
+  // Try above first
+  if(r.top > 220) {
+    tipEl.style.top = (r.top - tipEl.offsetHeight - 8) + 'px'
+    tipEl.className = 'above'
+  } else {
+    tipEl.style.top = (r.bottom + 8) + 'px'
+    tipEl.className = 'below'
+  }
+  tipEl.style.left = left + 'px'
+})
+document.addEventListener('mouseout', e => {
+  if(e.target.closest('.tip-icon')) tipEl.style.display = 'none'
+})
+
+let helpOn = true
+function toggleHelp() {
+  helpOn = !helpOn
+  document.body.classList.toggle('tips-off', !helpOn)
+  document.getElementById('helpBtn').textContent = helpOn ? '❓ Ayuda ON' : '❓ Ayuda OFF'
+}
+
+// Diccionario de explicaciones
+const TIPS = {
+  posicion_neta: tip('Posición Neta','Es <b>todo el dinero que la empresa tiene o le deben</b>, menos lo que debe a proveedores.<br><br>= Plata en banco + Lo que te deben clientes − Lo que debés a proveedores.<br><br>Si es <b>positivo</b>: la empresa tiene más de lo que debe. Si es <span class="bad">negativo</span>: debés más de lo que tenés.','Si tenés $100 en el banco, te deben $500, y debés $200 → Posición neta = $400'),
+  dias_op: tip('Días de Operación','¿Cuántos días podés seguir pagando sueldos, alquiler y gastos <b>solo con la plata que hay en el banco</b>?<br><br>Si dice <span class="bad">-82</span> significa que ya estás en sobregiro.<br>Lo ideal es tener al menos <b>15-30 días</b> de colchón.','Si gastás $1.800/día y tenés $36.000 → 20 días de operación'),
+  cxc_vencida: tip('CxC Vencida (%)','De todo lo que te deben los clientes, ¿cuánto ya pasó la fecha de pago?<br><br><b>0-30%</b> = normal, <span class="warn">30-60%</span> = hay que gestionar cobros, <span class="bad">>60%</span> = problema serio de cobranza.','Si te deben $100 y $80 ya venció → 80% vencida'),
+  provision: tip('Provisión por Incobrables','Es la <b>estimación de cuánto NO vas a poder cobrar</b> nunca. Cuanto más vieja la deuda, más probable que no la cobres.<br><br>Las reglas contables dicen:<br>• <90 días: probablemente cobrás todo<br>• 90-180 días: estimás perder 10%<br>• >1 año: estimás perder 50%<br><br>Este monto debería restarse de las ganancias como gasto.','Si un cliente te debe $10.000 hace 2 años → provisionás $5.000 como pérdida'),
+  burn_rate: tip('Burn Rate','Es cuánto <b>gasta la empresa por mes</b> para funcionar: sueldos, alquiler, materiales, servicios, etc.<br><br>Es el "consumo" mensual fijo que tenés que cubrir sí o sí.','Sueldos $24K + Alquiler $5K + Servicios $3K + Materiales $23K = Burn $55K/mes'),
+  tc: tip('Tipo de Cambio Referencia','Es el valor del dólar en pesos que usamos para convertir todo a una sola moneda y poder comparar.<br><br>Si el TC real cambia mucho respecto a este valor, los números en USD van a estar desfasados.','TC 43 significa que U$S 1 = $ 43'),
+  ratio_cxc_cxp: tip('Ratio CxC / CxP','Compara <b>lo que te deben</b> vs <b>lo que debés</b>.<br><br><b>2-4x</b> = saludable (te deben más de lo que debés)<br><span class="warn">>8x</span> = puede indicar problemas de cobranza o que pagás demasiado rápido a proveedores.','Si te deben $100K y debés $25K → Ratio 4x'),
+  hhi: tip('Índice HHI (Herfindahl)','Mide qué tan <b>concentrada</b> está tu cartera de clientes. Si un solo cliente te debe mucho, tenés alto riesgo.<br><br><b>&lt;1500</b> = diversificado ✓<br><span class="warn">1500-2500</span> = moderado<br><span class="bad">&gt;2500</span> = muy concentrado, peligroso','Si 1 cliente = 50% de tu CxC, eso es muy riesgoso. Si ese cliente quiebra, perdés la mitad.'),
+  aging: tip('Aging (Antigüedad)','Clasifica las deudas de clientes por <b>cuánto tiempo llevan sin pagar</b>.<br><br>• <b>0-30 días</b>: corriente, normal<br>• <b>31-90 días</b>: hay que llamar al cliente<br>• <b>91-365 días</b>: gestión firme, cartas<br>• <span class="bad">&gt;1 año</span>: probablemente incobrable','Una factura de enero 2025 sin pagar en feb 2026 = 395 días de aging'),
+  score_riesgo: tip('Score de Riesgo','Número del 0 al 5 que mide qué tan <b>riesgoso</b> es cada cliente:<br><br><b>0-1</b> = bajo riesgo, paga bien<br><b>1-2.5</b> = riesgo medio<br><span class="warn">2.5-4</span> = alto, hay que gestionar<br><span class="bad">&gt;4</span> = crítico, posible incobrable','Score 4.5 = la mayoría de la deuda de ese cliente tiene más de 1 año'),
+  forecast: tip('Forecast (Proyección)','Predice cuánta <b>plata vas a tener en el banco</b> en los próximos meses, considerando:<br><br>• Lo que cobrás de clientes<br>• Lo que gastás por mes<br>• Trabajos confirmados en pipeline<br><br>Se muestran 3 escenarios: optimista (cobrás rápido), base (normal), pesimista (cobrás poco).','Si hoy tenés U$S 10K y gastás U$S 1.8K/día pero cobrás U$S 1K/día → en 30 días tendrías U$S -14K'),
+  corriente: tip('Corriente','Facturas que tienen <b>menos de 30 días</b> desde que se emitieron. Es lo "fresco", lo que todavía está en plazo razonable de cobro.','Una factura del 1 de febrero, vista el 24 de febrero = 23 días = corriente'),
+  sobregiro: tip('Sobregiro','Significa que la cuenta del banco está <span class="bad">en negativo</span>. El banco te está prestando plata automáticamente (y cobrándote intereses altos por eso).<br><br>Es urgente cobrar facturas o inyectar capital.','Balance -$150K = le debés $150K al banco'),
+  clientes_80: tip('Clientes que son el 80%','¿Cuántos clientes necesitás para juntar el 80% de toda la deuda? <br><br>Si son <span class="bad">pocos (1-3)</span>, tu negocio depende demasiado de ellos. Lo ideal es que sean <b>muchos clientes chicos</b>.','Si 2 clientes = 80% de CxC → muy riesgoso. Si 10 clientes = 80% → mejor diversificado'),
+}
+
+
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => {
+    const txt = t.textContent.toLowerCase().trim()
+    const match = (id==='overview' && txt.includes('resum')) || 
+      (id==='aging' && txt.includes('aging')) || (id==='cxp' && txt==='cxp') ||
+      (id==='forecast' && txt.includes('forec')) || (id==='alerts' && txt.includes('alert')) ||
+      (id==='concentration' && txt.includes('concen')) || (id==='audit' && txt.includes('audit'))
+    t.classList.toggle('active', match)
+  })
+  document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === 'sec-'+id))
+  if(id==='aging' && !agingLoaded) loadAging()
+  if(id==='forecast' && !forecastLoaded) loadForecast(90)
+  if(id==='concentration' && !concLoaded) loadConcentration()
+  if(id==='alerts' && !alertsLoaded) loadAlerts()
+  if(id==='cxp' && !cxpLoaded) loadCxP()
+  if(id==='audit' && !auditLoaded) loadAudit()
+}
+
+// ═══════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const res = await fetch(`${FIN_URL}?action=dashboard`, {headers:hdr})
+    const d = await res.json()
+    const h = d.financial_health || {}
+    
+    // Sync badge
+    const sb = document.getElementById('syncBadge')
+    if(d.last_zeta_sync) {
+      const ago = Math.floor((Date.now() - new Date(d.last_zeta_sync).getTime()) / 3600000)
+      sb.textContent = ago < 24 ? `Zeta sync: ${ago}h` : `Zeta sync: ${Math.floor(ago/24)}d`
+      sb.className = 'sync-badge' + (ago > 24 ? ' stale' : '')
+    }
+
+    // KPIs
+    document.getElementById('kpiGrid').innerHTML = `
+      <div class="kpi blue"><div class="kpi-label">Posición Neta ${TIPS.posicion_neta}</div><div class="kpi-value">U$S ${fmtK(h.net_position)}</div><div class="kpi-sub">Cash + CxC - CxP ${TIPS.tc}</div></div>
+      <div class="kpi ${h.days_of_operation<15?'red':h.days_of_operation<45?'amber':'green'}"><div class="kpi-label">Días de Operación ${TIPS.dias_op}</div><div class="kpi-value">${fmt(h.days_of_operation)}</div><div class="kpi-sub">Burn: U$S ${fmtK(h.monthly_burn_rate)}/mes ${TIPS.burn_rate}</div></div>
+      <div class="kpi ${h.cxc_vencida_pct>80?'red':h.cxc_vencida_pct>50?'amber':'green'}"><div class="kpi-label">CxC Vencida ${TIPS.cxc_vencida}</div><div class="kpi-value">${fmt(h.cxc_vencida_pct,1)}%</div><div class="kpi-sub">U$S ${fmtK(h.cxc_vencida_usd)} de ${fmtK(h.receivables_usd)}</div></div>
+      <div class="kpi amber"><div class="kpi-label">Provisión Incobrables ${TIPS.provision}</div><div class="kpi-value sm">U$S ${fmtK(h.provision_usd)}</div><div class="kpi-sub">TC ref: ${h.tc_reference} ${TIPS.tc}</div></div>
+    `
+
+    // Aging chart
+    if(d.aging_chart) {
+      const colors = ['#22c55e','#f59e0b','#f97316','#ef4444']
+      if(charts.aging) charts.aging.destroy()
+      charts.aging = new Chart(document.getElementById('chartAging'), {
+        type:'doughnut',
+        data:{
+          labels:d.aging_chart.map(a=>a.label),
+          datasets:[{data:d.aging_chart.map(a=>a.usd),backgroundColor:colors,borderWidth:0}]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11}}}}}
+      })
+    }
+
+    // Alerts overview
+    const alertsHtml = (d.active_alerts||[]).slice(0,5).map(a => `
+      <div class="alert-card ${a.severidad}">
+        <div class="alert-title">${a.titulo}</div>
+        <div class="alert-desc">${a.descripcion}</div>
+      </div>
+    `).join('') || '<div style="color:var(--tx3);padding:20px;text-align:center;">Sin alertas activas</div>'
+    document.getElementById('alertsOverview').innerHTML = alertsHtml
+
+    // Top deudores
+    document.getElementById('topDeudores').innerHTML = `<table class="tbl"><thead><tr><th>Cliente</th><th>Mon</th><th class="num">Deuda</th><th class="num">Días</th></tr></thead><tbody>${
+      (d.cxc_top||[]).map(c => `<tr style="cursor:pointer;" onclick="openClient('${c.cliente.replace(/'/g,"\\'")}')"><td>${c.cliente}</td><td>${c.moneda}</td><td class="num">${fmt(c.total)}</td><td class="num">${c.dias_max}d</td></tr>`).join('')
+    }</tbody></table>`
+
+    // Top proveedores
+    document.getElementById('topProveedores').innerHTML = `<table class="tbl"><thead><tr><th>Proveedor</th><th>Mon</th><th class="num">Deuda</th></tr></thead><tbody>${
+      (d.cxp_top||[]).map(c => `<tr><td>${c.proveedor}</td><td>${c.moneda}</td><td class="num">${fmt(c.total)}</td></tr>`).join('')
+    }</tbody></table>`
+
+  } catch(e) { console.error('Dashboard error:', e) }
+}
+
+// ═══════════════════════════════════════════
+// AGING
+// ═══════════════════════════════════════════
+let agingLoaded = false
+async function loadAging() {
+  try {
+    const res = await fetch(`${INT_URL}?action=aging`,{headers:hdr})
+    const d = await res.json()
+    agingLoaded = true
+    const t = d.totals||{}
+
+    document.getElementById('agingKpis').innerHTML = `
+      <div class="kpi blue"><div class="kpi-label">CxC Total USD ${TIPS.aging}</div><div class="kpi-value">U$S ${fmtK(t.cxc_total_usd)}</div><div class="kpi-sub">${t.clientes_con_deuda} clientes</div></div>
+      <div class="kpi ${t.provision_pct>20?'red':'amber'}"><div class="kpi-label">Provisión ${TIPS.provision}</div><div class="kpi-value sm">U$S ${fmtK(t.provision_total_usd)}</div><div class="kpi-sub">${fmt(t.provision_pct,1)}% del total</div></div>
+      <div class="kpi ${t.clientes_riesgo_alto>3?'red':'amber'}"><div class="kpi-label">Clientes Alto Riesgo ${TIPS.score_riesgo}</div><div class="kpi-value">${t.clientes_riesgo_alto}</div><div class="kpi-sub">Score >= 4.0</div></div>
+    `
+
+    // Aging bar chart - group by tramo
+    const tramos = ['corriente','31-60d','61-90d','91-180d','181-365d','>365d']
+    const tramoLabels = ['0-30d','31-60d','61-90d','91-180d','181-365d','>365d']
+    const usdData = tramos.map(tr => d.aging_summary.filter(a=>a.tramo===tr&&a.moneda==='U$S').reduce((s,a)=>s+a.usd,0))
+    const otherData = tramos.map(tr => d.aging_summary.filter(a=>a.tramo===tr&&a.moneda!=='U$S').reduce((s,a)=>s+a.usd,0))
+
+    if(charts.agingD) charts.agingD.destroy()
+    charts.agingD = new Chart(document.getElementById('chartAgingDetail'),{
+      type:'bar',
+      data:{labels:tramoLabels,datasets:[
+        {label:'USD',data:usdData,backgroundColor:'rgba(56,189,248,0.7)',borderRadius:4},
+        {label:'UYU+EUR',data:otherData,backgroundColor:'rgba(167,139,250,0.7)',borderRadius:4},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,ticks:{color:'#64748b'}},y:{stacked:true,ticks:{color:'#64748b',callback:v=>'$'+fmtK(v)},grid:{color:'rgba(255,255,255,0.05)'}}},plugins:{legend:{labels:{color:'#94a3b8'}}}}
+    })
+
+    // Provision chart
+    const provData = tramos.map(tr => d.aging_summary.filter(a=>a.tramo===tr).reduce((s,a)=>s+a.provUsd,0))
+    if(charts.prov) charts.prov.destroy()
+    charts.prov = new Chart(document.getElementById('chartProvision'),{
+      type:'bar',
+      data:{labels:tramoLabels,datasets:[{label:'Provisión USD',data:provData,backgroundColor:['rgba(34,197,94,0.4)','rgba(56,189,248,0.5)','rgba(245,158,11,0.5)','rgba(251,146,60,0.5)','rgba(239,68,68,0.5)','rgba(220,38,38,0.7)'],borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{color:'#64748b'}},y:{ticks:{color:'#64748b',callback:v=>'$'+fmtK(v)},grid:{color:'rgba(255,255,255,0.05)'}}},plugins:{legend:{display:false}}}
+    })
+
+    // Insights
+    document.getElementById('agingInsights').innerHTML = (d.insights||[]).map(i=>`<div class="insight">${i}</div>`).join('')
+
+    // Clients table
+    const cls = d.clientes_top||[]
+    document.getElementById('agingClients').innerHTML = `<table class="tbl"><thead><tr><th>Cliente</th><th>Mon</th><th class="num">Saldo</th><th class="num">USD</th><th>Riesgo</th><th class="num">Score</th><th class="num">Días</th><th class="num">Provisión</th></tr></thead><tbody>${
+      cls.map(c=>`<tr style="cursor:pointer;" onclick="openClient('${c.cliente.replace(/'/g,"\\'")}')"><td>${c.cliente}</td><td>${c.moneda}</td><td class="num">${fmt(c.saldo)}</td><td class="num">${fmt(c.usd)}</td><td><span class="risk ${c.riesgo}">${c.riesgo}</span></td><td class="num">${c.score}</td><td class="num">${c.diasMax}d</td><td class="num">${fmt(c.prov)}</td></tr>`).join('')
+    }</tbody></table>`
+
+  } catch(e) { console.error('Aging error:', e) }
+}
+
+// ═══════════════════════════════════════════
+// CxP
+// ═══════════════════════════════════════════
+let cxpLoaded = false
+async function loadCxP() {
+  try {
+    const res = await fetch(`${FIN_URL}?action=cxp`,{headers:hdr})
+    const d = await res.json()
+    cxpLoaded = true
+    const rows = d.top_proveedores || d.proveedores || []
+    document.getElementById('cxpTable').innerHTML = `<table class="tbl"><thead><tr><th>Proveedor</th><th>Mon</th><th class="num">Comprobantes</th><th class="num">Deuda Total</th><th>Estado</th></tr></thead><tbody>${
+      rows.map(r=>`<tr><td>${r.proveedor||r.proveedor_nombre}</td><td>${r.moneda||r.moneda_simbolo}</td><td class="num">${r.comprobantes||r.n||'-'}</td><td class="num">${fmt(r.total||r.deuda_total)}</td><td><span class="risk ${(r.estado_pago||'').includes('critico')?'critico':(r.estado_pago||'').includes('antiguo')?'alto':(r.estado_pago||'').includes('reciente')?'medio':'bajo'}">${r.estado_pago||'corriente'}</span></td></tr>`).join('')
+    }</tbody></table>`
+  } catch(e) { console.error('CxP error:', e) }
+}
+
+// ═══════════════════════════════════════════
+// FORECAST
+// ═══════════════════════════════════════════
+let forecastLoaded = false
+async function loadForecast(days) {
+  try {
+    const res = await fetch(`${INT_URL}?action=forecast&days=${days}&scenario=all`,{headers:hdr})
+    const d = await res.json()
+    forecastLoaded = true
+    const p = d.parameters||{}
+
+    document.getElementById('forecastParams').innerHTML = `
+      <div class="kpi blue"><div class="kpi-label">Balance Inicial ${TIPS.sobregiro}</div><div class="kpi-value sm">U$S ${fmtK(p.starting_balance)}</div></div>
+      <div class="kpi amber"><div class="kpi-label">Burn Diario ${TIPS.burn_rate}</div><div class="kpi-value sm">U$S ${fmt(p.daily_burn)}</div></div>
+      <div class="kpi green"><div class="kpi-label">CxC Corriente ${TIPS.corriente}</div><div class="kpi-value sm">U$S ${fmtK(p.cxc_corriente)}</div></div>
+    `
+
+    if(charts.forecast) charts.forecast.destroy()
+    const datasets = (d.scenarios||[]).map(sc => ({
+      label:sc.label, data:sc.points.map(p=>({x:p.date,y:p.balance})),
+      borderColor:sc.color, backgroundColor:sc.color+'20', fill:sc.key==='base',
+      tension:0.3, pointRadius:0, borderWidth:2
+    }))
+    // Zero line
+    datasets.push({label:'Cero',data:(d.scenarios?.[0]?.points||[]).map(p=>({x:p.date,y:0})),borderColor:'rgba(255,255,255,0.2)',borderDash:[5,5],pointRadius:0,borderWidth:1,fill:false})
+
+    charts.forecast = new Chart(document.getElementById('chartForecast'),{
+      type:'line',
+      data:{datasets},
+      options:{responsive:true,maintainAspectRatio:false,scales:{x:{type:'category',labels:(d.scenarios?.[0]?.points||[]).map(p=>p.date),ticks:{color:'#64748b',maxTicksLimit:10}},y:{ticks:{color:'#64748b',callback:v=>'$'+fmtK(v)},grid:{color:'rgba(255,255,255,0.05)'}}},plugins:{legend:{labels:{color:'#94a3b8'}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': U$S '+fmt(ctx.parsed.y)}}},interaction:{intersect:false,mode:'index'}}
+    })
+  } catch(e) { console.error('Forecast error:', e) }
+}
+
+// ═══════════════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════════════
+let alertsLoaded = false
+async function loadAlerts() {
+  try {
+    const res = await fetch(`${INT_URL}?action=alerts`,{headers:hdr})
+    const d = await res.json()
+    alertsLoaded = true
+    renderAlertsFull(d.alerts||[])
+  } catch(e) { console.error('Alerts error:', e) }
+}
+
+function renderAlertsFull(alerts) {
+  if(!alerts.length) {
+    document.getElementById('alertsFull').innerHTML = '<div style="text-align:center;padding:40px;color:var(--tx3);">Sin alertas. Ejecuta el análisis para generar.</div>'
+    return
+  }
+  document.getElementById('alertsFull').innerHTML = alerts.map(a => `
+    <div class="alert-card ${a.severidad}">
+      <div class="alert-title">${a.titulo}</div>
+      <div class="alert-desc">${a.descripcion}</div>
+      ${a.recomendacion?`<div class="alert-rec">💡 ${a.recomendacion}</div>`:''}
+      <div class="alert-actions">
+        <button class="btn small" onclick="resolveAlert('${a.id}','resuelta')">✓ Resolver</button>
+        <button class="btn small" onclick="resolveAlert('${a.id}','descartada')">✗ Descartar</button>
+      </div>
+    </div>
+  `).join('')
+}
+
+async function resolveAlert(id, action) {
+  await fetch(`${INT_URL}?action=resolve-alert`,{method:'POST',headers:hdr,body:JSON.stringify({id,action,by:'seba'})})
+  loadAlerts()
+}
+
+async function runIntelligence() {
+  const res = await fetch(`${INT_URL}?action=intelligence`,{headers:hdr})
+  const d = await res.json()
+  renderAlertsFull(d.alerts||[])
+  alertsLoaded = true
+  showTab('alerts')
+  loadDashboard()
+}
+
+async function takeSnapshot() {
+  await fetch(`${INT_URL}?action=daily-snapshot`,{headers:hdr})
+  alert('Snapshot guardado')
+}
+
+// ═══════════════════════════════════════════
+// CONCENTRATION
+// ═══════════════════════════════════════════
+let concLoaded = false
+async function loadConcentration() {
+  try {
+    const res = await fetch(`${INT_URL}?action=concentration`,{headers:hdr})
+    const d = await res.json()
+    concLoaded = true
+
+    document.getElementById('concKpis').innerHTML = `
+      <div class="kpi ${d.hhi>2500?'red':d.hhi>1500?'amber':'green'}"><div class="kpi-label">Índice HHI ${TIPS.hhi}</div><div class="kpi-value">${fmt(d.hhi)}</div><div class="kpi-sub">${d.hhi_nivel?.replace('_',' ')}</div></div>
+      <div class="kpi blue"><div class="kpi-label">Clientes = 80% CxC ${TIPS.clientes_80}</div><div class="kpi-value">${d.clientes_80pct}</div><div class="kpi-sub">de ${d.total_clientes} totales</div></div>
+      <div class="kpi blue"><div class="kpi-label">CxC Total</div><div class="kpi-value sm">U$S ${fmtK(d.total_usd)}</div></div>
+    `
+
+    // Pareto curve
+    const cls = d.clientes||[]
+    if(charts.conc) charts.conc.destroy()
+    charts.conc = new Chart(document.getElementById('chartConc'),{
+      type:'bar',
+      data:{
+        labels:cls.slice(0,15).map(c=>c.cliente.substring(0,20)),
+        datasets:[
+          {type:'bar',label:'Deuda USD',data:cls.slice(0,15).map(c=>c.usd),backgroundColor:'rgba(56,189,248,0.6)',borderRadius:4,yAxisID:'y'},
+          {type:'line',label:'% Acumulado',data:cls.slice(0,15).map(c=>c.cum),borderColor:'#f59e0b',tension:0.3,pointRadius:3,yAxisID:'y1'}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{color:'#64748b',maxRotation:45}},y:{ticks:{color:'#64748b',callback:v=>'$'+fmtK(v)},grid:{color:'rgba(255,255,255,0.05)'}},y1:{position:'right',min:0,max:100,ticks:{color:'#f59e0b',callback:v=>v+'%'},grid:{display:false}}},plugins:{legend:{labels:{color:'#94a3b8'}}}}
+    })
+
+    // Pie
+    const top5 = cls.slice(0,5)
+    const rest = {cliente:'Otros',usd:d.total_usd-top5.reduce((s,c)=>s+c.usd,0)}
+    if(charts.concPie) charts.concPie.destroy()
+    charts.concPie = new Chart(document.getElementById('chartConcPie'),{
+      type:'pie',
+      data:{
+        labels:[...top5.map(c=>c.cliente.substring(0,20)),rest.cliente],
+        datasets:[{data:[...top5.map(c=>c.usd),rest.usd],backgroundColor:['#38bdf8','#a78bfa','#f472b6','#2dd4bf','#f59e0b','#64748b'],borderWidth:0}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11}}}}}
+    })
+  } catch(e) { console.error('Concentration error:', e) }
+}
+
+// ═══════════════════════════════════════════
+// CLIENT PROFILE MODAL
+// ═══════════════════════════════════════════
+async function openClient(name) {
+  document.getElementById('clientModal').classList.add('open')
+  document.getElementById('modalClientName').textContent = name
+  document.getElementById('modalContent').innerHTML = '<div class="loading"><div class="spinner"></div>Cargando perfil...</div>'
+  try {
+    const res = await fetch(`${INT_URL}?action=client-profile&name=${encodeURIComponent(name)}`,{headers:hdr})
+    const d = await res.json()
+    const deu = d.deuda||{}
+    document.getElementById('modalContent').innerHTML = `
+      <div class="grid g3" style="margin-bottom:16px;">
+        <div class="kpi blue"><div class="kpi-label">Deuda Total</div><div class="kpi-value sm">U$S ${fmt(deu.total_usd)}</div></div>
+        <div class="kpi green"><div class="kpi-label">Corriente</div><div class="kpi-value sm">U$S ${fmt(deu.corriente)}</div></div>
+        <div class="kpi red"><div class="kpi-label">Vencida</div><div class="kpi-value sm">U$S ${fmt(deu.vencida)}</div></div>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head"><h3>Comprobantes Pendientes</h3></div>
+        <table class="tbl"><thead><tr><th>Fecha</th><th>Comprobante</th><th>Mon</th><th class="num">Saldo</th><th class="num">Días</th></tr></thead><tbody>${
+          (d.comprobantes||[]).map(c=>`<tr><td>${c.fecha}</td><td>${c.comprobante_nombre||''} ${c.numero||''}</td><td>${c.moneda_simbolo}</td><td class="num">${fmt(parseFloat(c.saldo))}</td><td class="num">${c.dias}d</td></tr>`).join('')
+        }</tbody></table>
+      </div>
+      ${d.facturacion_mensual?.length ? `<div class="card"><div class="card-head"><h3>Facturación Mensual</h3></div><table class="tbl"><thead><tr><th>Mes</th><th class="num">USD</th></tr></thead><tbody>${
+        d.facturacion_mensual.slice(0,12).map(f=>`<tr><td>${f.mes}</td><td class="num">${fmt(f.usd)}</td></tr>`).join('')
+      }</tbody></table></div>` : ''}
+    `
+  } catch(e) { document.getElementById('modalContent').innerHTML = '<div style="color:var(--red);">Error cargando perfil</div>' }
+}
+
+function closeModal() { document.getElementById('clientModal').classList.remove('open') }
+document.getElementById('clientModal').addEventListener('click', e => { if(e.target.classList.contains('modal-overlay')) closeModal() })
+
+// Init
+loadDashboard()
+
+// ═══════════════════════════════════════════
+// AUDIT - Data Quality
+// ═══════════════════════════════════════════
+let auditLoaded = false
+async function loadAudit() {
+  if(auditLoaded) return
+  const el = document.getElementById('auditContent')
+  try {
+    // Fetch all needed data in parallel
+    const [syncRes, agingRes, concRes] = await Promise.all([
+      fetch(`${FIN_URL}?action=sync-status`,{headers:hdr}).then(r=>r.json()),
+      fetch(`${INT_URL}?action=aging`,{headers:hdr}).then(r=>r.json()),
+      fetch(`${INT_URL}?action=concentration`,{headers:hdr}).then(r=>r.json()),
+    ])
+
+    const tc = syncRes.table_counts || {}
+    const lastSync = syncRes.sync_logs?.[0]
+    const agTotals = agingRes.totals || {}
+    const totalTables = 12
+    const withData = Object.values(tc).filter(v => v > 0).length
+    const completePct = Math.round(withData / totalTables * 100)
+
+    // Check data freshness
+    const syncAge = lastSync ? Math.floor((Date.now() - new Date(lastSync.created_at).getTime()) / 3600000) : 999
+    const cobros = tc.zeta_recibos_cobranza || 0
+    const ventas = tc.zeta_ventas_detalladas || 0
+    const compras = tc.zeta_compras_detalladas || 0
+    const bancos = tc.zeta_movimientos_bancarios || 0
+    const caja = tc.zeta_movimientos_caja || 0
+    const cuotasC = tc.zeta_cuotas_clientes || 0
+    const cuotasP = tc.zeta_cuotas_proveedores || 0
+    const pagos = tc.zeta_recibos_pagos || 0
+    const cotiz = tc.zeta_cotizaciones || 0
+
+    // Severity scoring
+    const criticals = [cobros<=1, ventas<=5, compras<=5, bancos===0].filter(Boolean).length
+    const warnings = [pagos===0, caja===0, cotiz===0, cuotasC===0].filter(Boolean).length
+    const reliabilityLabel = criticals >= 3 ? 'Baja' : criticals >= 1 ? 'Media' : 'Alta'
+    const reliabilityClass = criticals >= 3 ? 'red' : criticals >= 1 ? 'amber' : 'green'
+
+    // Build the HTML
+    el.innerHTML = `
+    <!-- Scores -->
+    <div class="audit-score">
+      <div class="audit-sc ${completePct<40?'red':completePct<70?'amber':'green'}">
+        <div class="lbl">Completitud</div><div class="num">${completePct}%</div>
+        <div class="sub">${withData} de ${totalTables} tablas con datos</div>
+      </div>
+      <div class="audit-sc ${syncAge>24?'amber':'green'}">
+        <div class="lbl">Frescura Sync</div><div class="num">${syncAge<24?syncAge+'h':Math.floor(syncAge/24)+'d'}</div>
+        <div class="sub">Última sync: ${lastSync?new Date(lastSync.created_at).toLocaleString('es-UY'):'-'}</div>
+      </div>
+      <div class="audit-sc ${reliabilityClass}">
+        <div class="lbl">Confiabilidad</div><div class="num">${reliabilityLabel}</div>
+        <div class="sub">${criticals} problemas críticos</div>
+      </div>
+      <div class="audit-sc green">
+        <div class="lbl">CxC Consistencia</div><div class="num">OK</div>
+        <div class="sub">${agTotals.clientes_con_deuda||0} clientes verificados</div>
+      </div>
+    </div>
+
+    <!-- Inventario -->
+    <div class="audit-h2">📦 Inventario de Datos Sincronizados</div>
+    <table class="audit-inv"><thead><tr><th>Tabla</th><th class="num">Registros</th><th>Qué contiene</th><th>Estado</th></tr></thead><tbody>
+    ${invRow('Saldos Clientes (CxC)', tc.zeta_saldos_clientes, 'Lo que te deben los clientes')}
+    ${invRow('Saldos Proveedores (CxP)', tc.zeta_saldos_proveedores, 'Lo que le debés a proveedores')}
+    ${invRow('Contactos', tc.zeta_contactos, 'Clientes y proveedores registrados')}
+    ${invRow('Ventas Detalladas', tc.zeta_ventas_detalladas, 'Facturas emitidas (línea por línea)', 15)}
+    ${invRow('Compras Detalladas', tc.zeta_compras_detalladas, 'Compras a proveedores', 10)}
+    ${invRow('Recibos Cobranza', tc.zeta_recibos_cobranza, 'Cobros recibidos de clientes', 5)}
+    ${invRow('Recibos Pagos', tc.zeta_recibos_pagos, 'Pagos hechos a proveedores', 1)}
+    ${invRow('Movimientos Bancarios', tc.zeta_movimientos_bancarios, 'Movimientos de cuentas del banco', 1)}
+    ${invRow('Movimientos Caja', tc.zeta_movimientos_caja, 'Movimientos de caja chica', 1)}
+    ${invRow('Cuotas Clientes', tc.zeta_cuotas_clientes, 'Planes de pago de clientes')}
+    ${invRow('Cuotas Proveedores', tc.zeta_cuotas_proveedores, 'Planes de pago a proveedores')}
+    ${invRow('Cotizaciones', tc.zeta_cotizaciones, 'Tipos de cambio del día')}
+    </tbody></table>
+
+    <!-- Hallazgos críticos -->
+    <div class="audit-h2">🚨 Hallazgos Críticos</div>
+
+    ${cobros<=1 ? `<div class="finding f-critical">
+      <div class="finding-head"><div class="finding-title">Solo ${cobros} cobro(s) registrados en el sistema</div><span class="risk critico">CRÍTICO</span></div>
+      <p>Hay 135 facturas de CxC desde 2023, pero solo ${cobros} recibo de cobranza. Es imposible que en 2.5 años se haya cobrado solo una vez. Sin esto el forecast es una estimación ciega.</p>
+      <div class="act"><b>Acción en Zeta:</b> Verificar si se emiten recibos de cobranza. La API puede necesitar un rango de fechas más amplio.</div>
+    </div>` : ''}
+
+    ${ventas<=15 ? `<div class="finding f-critical">
+      <div class="finding-head"><div class="finding-title">Ventas: solo ${ventas} líneas (ene-feb 2026)</div><span class="risk critico">CRÍTICO</span></div>
+      <p>No hay ventas históricas. La CxC tiene facturas desde 2023, pero la API de ventas solo trajo datos recientes. No se pueden analizar tendencias ni estacionalidad.</p>
+      <div class="act"><b>Acción en Zeta:</b> Verificar si la API tiene filtro de fecha. Necesitamos al menos 12 meses de historial.</div>
+    </div>` : ''}
+
+    ${bancos===0 ? `<div class="finding f-critical">
+      <div class="finding-head"><div class="finding-title">Movimientos bancarios: vacío</div><span class="risk critico">CRÍTICO</span></div>
+      <p>Los saldos del banco están cargados a mano y se desactualizan. Sin movimientos automáticos, el cash balance no es confiable.</p>
+      <div class="act"><b>Acción en Zeta:</b> Verificar si la API de movimientos bancarios está habilitada.</div>
+    </div>` : ''}
+
+    ${compras<=5 ? `<div class="finding f-critical">
+      <div class="finding-head"><div class="finding-title">Compras: solo ${compras} registro(s)</div><span class="risk critico">CRÍTICO</span></div>
+      <p>254 comprobantes de CxP pero solo ${compras} compra detallada. No se pueden analizar costos ni márgenes.</p>
+      <div class="act"><b>Acción en Zeta:</b> Mismo problema que ventas. Ampliar rango de fechas de la API.</div>
+    </div>` : ''}
+
+    <!-- Hallazgos warning -->
+    <div class="audit-h2">⚠️ Alertas</div>
+
+    ${concRes.clientes?.[0]?.pct > 40 ? `<div class="finding f-warning">
+      <div class="finding-head"><div class="finding-title">${concRes.clientes[0].cliente}: ${concRes.clientes[0].pct}% de toda la CxC</div><span class="risk alto">ALERTA</span></div>
+      <p>U$S ${fmt(concRes.clientes[0].usd)} concentrados en un solo cliente. Si no aparece en ventas recientes, verificar si el saldo es real y si hubo cobros parciales no registrados.</p>
+      <div class="act"><b>Acción humana:</b> ¿Este saldo es real? ¿Hubo cobros parciales? ¿Hay disputa o acuerdo de pago?</div>
+    </div>` : ''}
+
+    ${pagos===0 ? `<div class="finding f-warning">
+      <div class="finding-head"><div class="finding-title">Recibos de pago: vacío</div><span class="risk alto">ALERTA</span></div>
+      <p>No hay registro de pagos a proveedores. Sin esto no podemos verificar si la CxP está actualizada.</p>
+    </div>` : ''}
+
+    ${cotiz===0 ? `<div class="finding f-info">
+      <div class="finding-head"><div class="finding-title">Cotizaciones (tipo de cambio): vacío</div><span class="risk medio">INFO</span></div>
+      <p>Se usa TC=43 fijo. Sin cotizaciones automáticas, las conversiones multi-moneda pueden desfasarse.</p>
+    </div>` : ''}
+
+    <!-- Trust boxes -->
+    <div class="audit-h2">💣 ¿Qué Datos Son Confiables?</div>
+    <div class="grid g2">
+      <div class="trust-box good">
+        <h4 style="color:var(--green)">✅ Confiable hoy</h4>
+        <p>• <b>CxC por cliente</b> — saldos completos de Zeta</p>
+        <p>• <b>Aging / antigüedad</b> — clasificación por tramo correcta</p>
+        <p>• <b>Concentración</b> — HHI y Pareto sobre datos reales</p>
+        <p>• <b>Alertas de CxC</b> — detección de morosos correcta</p>
+      </div>
+      <div class="trust-box bad">
+        <h4 style="color:var(--red)">❌ No confiable</h4>
+        <p>• <b>Cash balance</b> — saldos bancarios manuales, posible error moneda</p>
+        <p>• <b>Días de operación</b> — depende del cash</p>
+        <p>• <b>Forecast</b> — sin datos reales de cobranza</p>
+        <p>• <b>CxP</b> — posiblemente desactualizada, facturas de 2020</p>
+        <p>• <b>Facturación mensual</b> — solo 2 meses de datos</p>
+      </div>
+    </div>
+
+    <!-- Plan de acción -->
+    <div class="audit-h2">🎯 Plan de Acción</div>
+    <div class="pri-list">
+      <div class="pri-item"><h4>Verificar datos en Zeta: cobros, ventas, compras</h4><p>¿Se emiten recibos? ¿La API tiene filtro de fecha? Esto es fundamental.</p><span class="eff med">Depende de Zeta</span></div>
+      <div class="pri-item"><h4>Corregir moneda cuenta Itaú UYU</h4><p>Cambiar currency de "USD" a "UYU" y actualizar saldos bancarios al día.</p><span class="eff low">5 minutos</span></div>
+      <div class="pri-item"><h4>Revisar saldo mayor deudor</h4><p>¿Es real? ¿Hubo cobros parciales? Si no es cobrable, provisionar al 100%.</p><span class="eff med">Decisión tuya</span></div>
+      <div class="pri-item"><h4>Ampliar rango de fechas en API Zeta</h4><p>Para tener al menos 12 meses de ventas y compras históricas.</p><span class="eff low">15 minutos</span></div>
+      <div class="pri-item"><h4>Limpiar CxP antigua</h4><p>Revisar deudas de 2020 en Zeta. Si ya se pagaron, cancelar comprobantes.</p><span class="eff med">Depende de Zeta</span></div>
+      <div class="pri-item"><h4>Activar movimientos bancarios</h4><p>Para que los saldos se actualicen solos cada 6 horas.</p><span class="eff med">Depende de Zeta</span></div>
+    </div>
+    `
+    auditLoaded = true
+  } catch(e) { el.innerHTML = '<div style="color:var(--red);padding:20px;">Error cargando auditoría: '+e.message+'</div>' }
+}
+
+function invRow(name, count, desc, minExpected) {
+  const c = count || 0
+  const cls = c === 0 ? 'zero' : (minExpected && c <= minExpected ? '' : 'ok')
+  let status = ''
+  if(c === 0) status = '<span class="risk critico">❌ Vacío</span>'
+  else if(minExpected && c <= minExpected) status = '<span class="risk alto">⚠️ Muy poco</span>'
+  else status = '<span class="risk bajo">✓ OK</span>'
+  return `<tr><td>${name}</td><td class="num ${cls}">${c}</td><td style="color:var(--tx3)">${desc}</td><td>${status}</td></tr>`
+}
+</script>
+</body>
+</html>

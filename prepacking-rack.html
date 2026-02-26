@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rack — Pre Packing</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=DM+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070a10; --card: #0d1117; --surface: #161b22;
+      --txt: #e7edf6; --muted: #8b949e; --border: #21262d;
+      --accent: #58a6ff; --success: #3fb950; --warning: #d29922; --danger: #f85149; --info: #58a6ff;
+      --mono: "JetBrains Mono", monospace; --sans: "DM Sans", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--txt); min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 20px; border-bottom: 1px solid var(--border);
+      background: rgba(7,10,16,.9); flex-shrink: 0;
+    }
+    .topbar-title { font-weight: 900; font-size: 14px; letter-spacing: .05em; }
+    .topbar-sub { font-size: 12px; color: var(--muted); }
+    .topbar-right { display: flex; gap: 12px; align-items: center; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .status-dot.connected { background: var(--success); box-shadow: 0 0 6px rgba(63,185,80,.4); }
+    .status-dot.disconnected { background: var(--danger); }
+
+    select { background: var(--surface); border: 1px solid var(--border); color: var(--txt); border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+
+    /* ── Main area ── */
+    .main-area { flex: 1; display: flex; gap: 0; overflow: hidden; }
+
+    /* ── Left: Big position indicator ── */
+    .position-panel {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; transition: background .5s;
+    }
+    .position-panel.idle { background: var(--bg); }
+    .position-panel.active-green { background: radial-gradient(ellipse at center, rgba(63,185,80,.12) 0%, var(--bg) 70%); }
+    .position-panel.active-yellow { background: radial-gradient(ellipse at center, rgba(210,153,34,.12) 0%, var(--bg) 70%); }
+    .position-panel.active-blue { background: radial-gradient(ellipse at center, rgba(88,166,255,.12) 0%, var(--bg) 70%); }
+
+    .pos-code {
+      font-family: var(--mono); font-weight: 800;
+      font-size: min(35vw, 35vh); line-height: 1;
+      letter-spacing: .05em; transition: all .3s;
+      text-shadow: 0 0 60px rgba(255,255,255,.08);
+    }
+    .pos-code.green { color: var(--success); text-shadow: 0 0 80px rgba(63,185,80,.25); }
+    .pos-code.yellow { color: var(--warning); text-shadow: 0 0 80px rgba(210,153,34,.25); }
+    .pos-code.blue { color: var(--info); text-shadow: 0 0 80px rgba(88,166,255,.25); }
+    .pos-code.idle { color: #1a2233; }
+
+    .pos-module {
+      font-size: min(5vw, 5vh); font-weight: 700; color: var(--muted);
+      margin-top: 12px; transition: all .3s;
+    }
+    .pos-module.active { color: var(--txt); }
+
+    .pos-piece {
+      font-size: min(2.5vw, 2.5vh); color: var(--muted);
+      margin-top: 8px; font-family: var(--mono); transition: all .3s;
+    }
+
+    .pos-status {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      font-size: 14px; color: var(--muted); font-family: var(--mono);
+    }
+
+    /* ── Right: Rack grid ── */
+    .rack-panel {
+      width: 320px; flex-shrink: 0;
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      background: var(--card);
+    }
+    .rack-header { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+    .rack-grid {
+      flex: 1; display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: auto repeat(6, 1fr);
+      gap: 3px; padding: 8px;
+    }
+    .rack-col-header {
+      text-align: center; font-family: var(--mono); font-weight: 700;
+      font-size: 14px; color: var(--muted); padding: 4px 0;
+    }
+    .rack-cell {
+      border-radius: 6px; border: 1px solid var(--border);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 4px; transition: all .4s; position: relative;
+      background: rgba(255,255,255,.01);
+    }
+    .rack-cell .cell-pos { font-family: var(--mono); font-size: 11px; color: #2a3444; font-weight: 700; }
+    .rack-cell .cell-mod { font-size: 9px; color: var(--muted); text-align: center; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+    .rack-cell.assigned { border-color: rgba(88,166,255,.2); background: rgba(88,166,255,.03); }
+    .rack-cell.assigned .cell-pos { color: var(--muted); }
+
+    .rack-cell.highlight {
+      border-color: var(--success); background: rgba(63,185,80,.12);
+      box-shadow: 0 0 20px rgba(63,185,80,.2);
+      z-index: 2; transform: scale(1.05);
+    }
+    .rack-cell.highlight .cell-pos { color: var(--success); font-size: 14px; }
+    .rack-cell.highlight .cell-mod { color: var(--txt); }
+
+    .rack-cell.highlight-yellow {
+      border-color: var(--warning); background: rgba(210,153,34,.12);
+      box-shadow: 0 0 20px rgba(210,153,34,.2);
+      z-index: 2; transform: scale(1.05);
+    }
+    .rack-cell.highlight-yellow .cell-pos { color: var(--warning); font-size: 14px; }
+    .rack-cell.highlight-yellow .cell-mod { color: var(--txt); }
+
+    @keyframes pulseCell {
+      0% { box-shadow: 0 0 20px rgba(63,185,80,.2); }
+      50% { box-shadow: 0 0 40px rgba(63,185,80,.35); }
+      100% { box-shadow: 0 0 20px rgba(63,185,80,.2); }
+    }
+    .rack-cell.highlight { animation: pulseCell 1.5s ease infinite; }
+
+    /* ── Counters at bottom ── */
+    .rack-footer {
+      border-top: 1px solid var(--border); padding: 10px 14px;
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .rf-item { font-family: var(--mono); font-size: 12px; }
+    .rf-item span { font-weight: 700; }
+
+    /* ── Waiting animation ── */
+    @keyframes breathe { 0%,100%{opacity:.3} 50%{opacity:.6} }
+    .pos-code.idle { animation: breathe 3s ease infinite; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="topbar-title">RACK PRE PACKING</div>
+    <div class="topbar-sub" id="svcLabel">Seleccionar servicio</div>
+  </div>
+  <div class="topbar-right">
+    <select id="selService"><option value="">Servicio...</option></select>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+      <span class="status-dot disconnected" id="realtimeDot"></span>
+      <span id="realtimeStatus" style="color:var(--muted)">Desconectado</span>
+    </div>
+  </div>
+</div>
+
+<div class="main-area">
+  <!-- Big position display -->
+  <div class="position-panel idle" id="posPanel">
+    <div class="pos-code idle" id="posCode">—</div>
+    <div class="pos-module" id="posModule">Esperando scan...</div>
+    <div class="pos-piece" id="posPiece"></div>
+    <div class="pos-status" id="posStatus"></div>
+  </div>
+
+  <!-- Rack grid -->
+  <div class="rack-panel">
+    <div class="rack-header">Rack — 6 columnas × 6 niveles</div>
+    <div class="rack-grid" id="rackGrid"></div>
+    <div class="rack-footer" id="rackFooter"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = "https://qnjizqowddtvzzfillmo.supabase.co";
+const SB_KEY = "sb_publishable_Agu_I1nw4mY1qRARQBbaHQ_6lTWsFTh";
+const sb = supabase.createClient(SB_URL, SB_KEY);
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+const COLS = ["A","B","C","D","E","F"];
+const LEVELS = [1,2,3,4,5,6]; // 1=top, 6=floor
+
+let curService = null;
+let rackMap = {};       // module_label → {col, level}
+let pieceModuleMap = {}; // piece_id → {module_label, piece_name, qty_expected, qty_scanned}
+let services = [];
+let realtimeChannel = null;
+let highlightTimer = null;
+
+// ── Audio ──
+let actx = null;
+function initAudio() { if(!actx) try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch{} }
+function tone(f=880,ms=90,t="sine",g=0.06){
+  if(!actx)return; if(actx.state==="suspended")actx.resume();
+  const o=actx.createOscillator(),gn=actx.createGain();
+  o.type=t;o.frequency.value=f;gn.gain.value=g;
+  o.connect(gn);gn.connect(actx.destination);
+  o.start();setTimeout(()=>{o.stop();o.disconnect();gn.disconnect()},ms);
+}
+function beepOk(){tone(880,80)}
+function beepComplete(){tone(1100,60);setTimeout(()=>tone(1300,80),80);}
+window.addEventListener("pointerdown",()=>{initAudio();if(actx?.state==="suspended")actx.resume()},{once:true});
+
+// ── Build rack grid ──
+function buildRackGrid() {
+  const grid = $("rackGrid");
+  // Header row: empty corner + A-F
+  grid.innerHTML = `<div></div>` + COLS.map(c => `<div class="rack-col-header">${c}</div>`).join("");
+
+  // 6 rows
+  for (const lv of LEVELS) {
+    grid.innerHTML += `<div class="rack-col-header" style="display:flex;align-items:center;justify-content:center">${lv}</div>`;
+    for (const col of COLS) {
+      const pos = `${col}${lv}`;
+      grid.innerHTML += `<div class="rack-cell" id="cell-${pos}" data-pos="${pos}">
+        <div class="cell-pos">${pos}</div>
+        <div class="cell-mod" id="cellmod-${pos}"></div>
+      </div>`;
+    }
+  }
+  // Update grid template for the level labels
+  grid.style.gridTemplateColumns = `30px repeat(6, 1fr)`;
+  grid.style.gridTemplateRows = `auto repeat(6, 1fr)`;
+}
+
+// ── Load services (from production list) ──
+async function loadServices() {
+  try {
+    const res = await fetch(`${SB_URL}/functions/v1/production-service`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SB_KEY}`, "apikey": SB_KEY },
+      body: JSON.stringify({ action: "list-production" }),
+    });
+    services = await res.json();
+  } catch (e) {
+    console.error(e);
+    // Fallback to local
+    const { data } = await sb.from("cnc_part_service_map")
+      .select("service_id, service_name, client_name").limit(10000);
+    const byId = {};
+    for (const r of data||[]) if (!byId[r.service_id]) byId[r.service_id] = r;
+    services = Object.values(byId).map(s => ({
+      service_id: s.service_id,
+      service_name: s.service_name || `Servicio ${s.service_id}`,
+      client_name: s.client_name || "",
+      internal_code: s.service_name,
+    }));
+  }
+
+  $("selService").innerHTML = `<option value="">Servicio...</option>` +
+    services.map(s => `<option value="${s.service_id}">${esc(s.internal_code||s.service_name)} — ${esc(s.client_name||"")}</option>`).join("");
+}
+
+// ── Load rack config for service ──
+async function loadRackConfig(serviceId) {
+  rackMap = {};
+  const { data } = await sb.from("rack_config").select("*").eq("service_id", serviceId);
+  for (const r of data || []) {
+    rackMap[r.module_label] = { col: r.rack_col, level: r.rack_level };
+  }
+  updateRackDisplay();
+}
+
+// ── Load piece → module mapping ──
+async function loadPieceMap(serviceId) {
+  pieceModuleMap = {};
+  const { data } = await sb.from("vw_packing_piece_progress")
+    .select("piece_id, module_label, piece_label, qty_expected, qty_scanned, qty_missing")
+    .eq("service_id", serviceId);
+
+  for (const p of data || []) {
+    pieceModuleMap[p.piece_id] = {
+      module_label: p.module_label,
+      piece_name: p.piece_label,
+      qty_expected: +p.qty_expected,
+      qty_scanned: +p.qty_scanned,
+      qty_missing: +p.qty_missing,
+    };
+  }
+}
+
+// ── Update rack cell labels ──
+function updateRackDisplay() {
+  // Clear all
+  for (const col of COLS) {
+    for (const lv of LEVELS) {
+      const pos = `${col}${lv}`;
+      const cell = $(`cell-${pos}`);
+      const modEl = $(`cellmod-${pos}`);
+      cell.className = "rack-cell";
+      modEl.textContent = "";
+    }
+  }
+
+  // Apply assignments
+  for (const [mod, pos] of Object.entries(rackMap)) {
+    const key = `${pos.col}${pos.level}`;
+    const cell = $(`cell-${key}`);
+    const modEl = $(`cellmod-${key}`);
+    if (cell) {
+      cell.classList.add("assigned");
+      modEl.textContent = mod;
+    }
+  }
+
+  // Footer stats
+  const total = Object.keys(rackMap).length;
+  $("rackFooter").innerHTML = `<div class="rf-item">Módulos asignados: <span>${total}</span></div>`;
+}
+
+// ── Highlight a rack position ──
+function highlightPosition(moduleLabel, pieceName, isComplete) {
+  const pos = rackMap[moduleLabel];
+  clearHighlight();
+
+  const colorClass = isComplete ? "green" : "yellow";
+  const panelClass = isComplete ? "active-green" : "active-yellow";
+  const cellHighClass = isComplete ? "highlight" : "highlight-yellow";
+
+  if (pos) {
+    const code = `${pos.col}${pos.level}`;
+    // Big display
+    $("posCode").textContent = code;
+    $("posCode").className = `pos-code ${colorClass}`;
+    $("posPanel").className = `position-panel ${panelClass}`;
+  } else {
+    $("posCode").textContent = "??";
+    $("posCode").className = "pos-code yellow";
+    $("posPanel").className = "position-panel active-yellow";
+  }
+
+  $("posModule").textContent = moduleLabel;
+  $("posModule").className = "pos-module active";
+  $("posPiece").textContent = pieceName || "";
+
+  // Highlight rack cell
+  if (pos) {
+    const key = `${pos.col}${pos.level}`;
+    const cell = $(`cell-${key}`);
+    if (cell) cell.classList.add(cellHighClass);
+  }
+
+  // Sound
+  initAudio();
+  if (isComplete) beepComplete(); else beepOk();
+
+  // Auto-clear after 8 seconds
+  highlightTimer = setTimeout(clearHighlight, 8000);
+}
+
+function clearHighlight() {
+  clearTimeout(highlightTimer);
+  // Remove all highlight classes
+  document.querySelectorAll(".rack-cell.highlight, .rack-cell.highlight-yellow").forEach(el => {
+    el.classList.remove("highlight", "highlight-yellow");
+  });
+}
+
+// ── Reset to idle ──
+function setIdle() {
+  clearHighlight();
+  $("posCode").textContent = "—";
+  $("posCode").className = "pos-code idle";
+  $("posPanel").className = "position-panel idle";
+  $("posModule").textContent = "Esperando scan...";
+  $("posModule").className = "pos-module";
+  $("posPiece").textContent = "";
+}
+
+// ── Subscribe to Realtime ──
+function subscribeToScans(serviceId) {
+  if (realtimeChannel) {
+    sb.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+
+  realtimeChannel = sb
+    .channel(`packing-scans-${serviceId}`)
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "packing_scans",
+      filter: `service_id=eq.${serviceId}`,
+    }, async (payload) => {
+      const scan = payload.new;
+      const pieceId = scan.piece_id;
+
+      // Refresh piece data to get updated counts
+      await loadPieceMap(serviceId);
+
+      const pieceInfo = pieceModuleMap[pieceId];
+      if (!pieceInfo) {
+        $("posCode").textContent = "?";
+        $("posCode").className = "pos-code yellow";
+        $("posModule").textContent = `Pieza ${pieceId} no encontrada`;
+        $("posModule").className = "pos-module active";
+        return;
+      }
+
+      const isComplete = pieceInfo.qty_missing <= 0;
+      highlightPosition(pieceInfo.module_label, pieceInfo.piece_name, isComplete);
+
+      // Update status
+      $("posStatus").textContent = `${pieceInfo.qty_scanned}/${pieceInfo.qty_expected} — ${new Date().toLocaleTimeString("es-UY")}`;
+    })
+    .subscribe((status) => {
+      const dot = $("realtimeDot");
+      const txt = $("realtimeStatus");
+      if (status === "SUBSCRIBED") {
+        dot.className = "status-dot connected";
+        txt.textContent = "Conectado";
+      } else {
+        dot.className = "status-dot disconnected";
+        txt.textContent = status;
+      }
+    });
+}
+
+// ── Events ──
+$("selService").addEventListener("change", async () => {
+  const sid = +$("selService").value;
+  if (!sid) { curService = null; setIdle(); return; }
+
+  curService = sid;
+  const svc = services.find(s => +s.service_id === sid);
+  $("svcLabel").textContent = `${svc?.internal_code||svc?.service_name||sid} — ${svc?.client_name||""}`;
+
+  setIdle();
+  await loadRackConfig(sid);
+  await loadPieceMap(sid);
+  subscribeToScans(sid);
+});
+
+// ── Boot ──
+buildRackGrid();
+(async () => {
+  await loadServices();
+  // Check URL params for auto-select
+  const params = new URLSearchParams(location.search);
+  const autoSvc = params.get("service");
+  if (autoSvc) {
+    $("selService").value = autoSvc;
+    $("selService").dispatchEvent(new Event("change"));
+  }
+})();
+</script>
+</body>
+</html>

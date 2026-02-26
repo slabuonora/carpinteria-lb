@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pre Packing — La Buonora</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070a10; --card: #0d1117; --surface: #161b22;
+      --txt: #e7edf6; --muted: #8b949e; --border: #21262d;
+      --accent: #58a6ff; --success: #3fb950; --warning: #d29922; --danger: #f85149; --info: #58a6ff;
+      --mono: "JetBrains Mono", monospace; --sans: "DM Sans", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--txt); min-height: 100vh; }
+
+    header {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 20px; background: rgba(7,10,16,.85);
+      backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; gap: 10px;
+    }
+    .h-title { font-weight: 900; font-size: 18px; letter-spacing: .04em; }
+    .h-sub { font-size: 12px; color: var(--muted); }
+    .h-right { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+    .scan-status {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      transition: all .3s;
+    }
+    .scan-status.listening { background: rgba(63,185,80,.08); border: 1px solid rgba(63,185,80,.25); color: var(--success); }
+    .scan-status.scanning { background: rgba(88,166,255,.15); border: 1px solid rgba(88,166,255,.4); color: var(--accent); animation: pulse .6s ease infinite; }
+    .scan-status.idle { background: rgba(139,148,158,.06); border: 1px solid var(--border); color: var(--muted); }
+    .scan-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+    main { max-width: 1200px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .card-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin-bottom: 12px; }
+
+    .svc-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+    select, input {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--txt); border-radius: 8px; padding: 10px 12px;
+      font-size: 14px; font-family: var(--sans); outline: none;
+    }
+    select:focus, input:focus { border-color: var(--accent); }
+    select option { background: var(--card); }
+    .flabel { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 4px; }
+
+    .btn {
+      font-family: var(--sans); font-size: 13px; font-weight: 600;
+      padding: 10px 16px; border-radius: 8px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface); color: var(--txt); transition: all .15s;
+    }
+    .btn:hover { background: #1f2937; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-danger { border-color: rgba(248,81,73,.3); color: var(--danger); }
+    .btn-danger:hover { background: rgba(248,81,73,.1); }
+
+    .metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+    .metric { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 10px; padding: 14px; transition: all .3s; }
+    .m-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .m-value { font-family: var(--mono); font-size: 32px; font-weight: 900; margin-top: 6px; }
+    .m-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .metric.ok { background: rgba(63,185,80,.06); border-color: rgba(63,185,80,.2); }
+    .metric.ok .m-value { color: var(--success); }
+    .metric.bad { background: rgba(248,81,73,.06); border-color: rgba(248,81,73,.2); }
+    .metric.bad .m-value { color: var(--danger); }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media(min-width:900px) { .detail-grid { grid-template-columns: .9fr 1.1fr; } }
+    @media(max-width:900px) { .metrics { grid-template-columns: repeat(2,1fr); } }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid rgba(33,38,45,.8); vertical-align: top; }
+    th { text-align: left; color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .tag.ok { color: var(--success); border: 1px solid rgba(63,185,80,.25); background: rgba(63,185,80,.06); }
+    .tag.warn { color: var(--warning); border: 1px solid rgba(210,153,34,.25); background: rgba(210,153,34,.06); }
+    .tag.bad { color: var(--danger); border: 1px solid rgba(248,81,73,.25); background: rgba(248,81,73,.06); }
+    .tag.info { color: var(--info); border: 1px solid rgba(88,166,255,.25); background: rgba(88,166,255,.06); }
+
+    @keyframes flashGreen { 0%{background:transparent} 20%{background:rgba(63,185,80,.28)} 60%{background:rgba(63,185,80,.18)} 100%{background:rgba(63,185,80,.04)} }
+    @keyframes flashYellow { 0%{background:transparent} 20%{background:rgba(210,153,34,.28)} 60%{background:rgba(210,153,34,.18)} 100%{background:rgba(210,153,34,.04)} }
+    @keyframes flashBlue { 0%{background:transparent} 20%{background:rgba(88,166,255,.28)} 60%{background:rgba(88,166,255,.18)} 100%{background:rgba(88,166,255,.04)} }
+    @keyframes flashRed { 0%{background:transparent} 20%{background:rgba(248,81,73,.28)} 60%{background:rgba(248,81,73,.18)} 100%{background:transparent} }
+    tr.flash-ok td { animation: flashGreen 1.4s ease; }
+    tr.flash-warn td { animation: flashYellow 1.4s ease; }
+    tr.flash-info td { animation: flashBlue 1.4s ease; }
+    tr.flash-bad td { animation: flashRed 1.4s ease; }
+
+    /* Persistent subtle tints for scanned rows */
+    tr.row-ok td { background: rgba(63,185,80,.04); }
+    tr.row-partial td { background: rgba(210,153,34,.04); }
+    tr.row-excess td { background: rgba(88,166,255,.04); }
+
+    .scan-toast {
+      position: fixed; top: 80px; right: 20px; z-index: 100;
+      padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 14px;
+      opacity: 0; transform: translateX(40px); transition: all .3s; pointer-events: none;
+    }
+    .scan-toast.show { opacity: 1; transform: translateX(0); }
+    .scan-toast.ok { background: rgba(63,185,80,.15); border: 1px solid rgba(63,185,80,.3); color: var(--success); }
+    .scan-toast.warn { background: rgba(210,153,34,.15); border: 1px solid rgba(210,153,34,.3); color: var(--warning); }
+    .scan-toast.error { background: rgba(248,81,73,.15); border: 1px solid rgba(248,81,73,.3); color: var(--danger); }
+    .scan-toast.excess { background: rgba(88,166,255,.15); border: 1px solid rgba(88,166,255,.3); color: var(--info); }
+
+    .last-scan { font-family: var(--mono); font-size: 13px; color: var(--muted); min-height: 20px; }
+    .last-scan strong { color: var(--txt); }
+
+    @media print {
+      header, .no-print, .scan-toast { display: none !important; }
+      body { background: #fff !important; color: #111 !important; }
+      .card { box-shadow: none !important; border: 1px solid #ddd !important; background: #fff !important; }
+      th, td { border-color: #ddd !important; color: #111 !important; }
+      .tag { border-color: #999 !important; color: #111 !important; background: transparent !important; }
+      .muted, .m-label, .m-sub { color: #555 !important; }
+      .metric { border-color: #ddd !important; background: #f9f9f9 !important; }
+      .metric .m-value { color: #111 !important; }
+      body[data-pm="1"] tr.row-ok { display: none !important; }
+      body[data-pm="1"] tr.row-mod-ok { display: none !important; }
+      #printHeader { display: block !important; }
+    }
+    /* ── Rack setup modal ── */
+    .modal-bg { position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:50;display:none;align-items:center;justify-content:center; }
+    .modal-bg.show { display:flex; }
+    .modal-box { background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:700px;width:95%;max-height:90vh;overflow-y:auto; }
+    .modal-title { font-size:18px;font-weight:700;margin-bottom:14px; }
+    .rack-setup-grid {
+      display:grid; grid-template-columns:30px repeat(6,1fr); grid-template-rows:auto repeat(6,1fr);
+      gap:4px; margin-bottom:16px;
+    }
+    .rsg-header { text-align:center;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--muted);padding:6px 0; }
+    .rsg-cell {
+      border:1px solid var(--border);border-radius:8px;padding:6px;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      min-height:56px;transition:all .2s;background:var(--surface);
+    }
+    .rsg-cell:hover { border-color:var(--accent);background:rgba(88,166,255,.06); }
+    .rsg-cell.has-module { border-color:rgba(63,185,80,.3);background:rgba(63,185,80,.05); }
+    .rsg-cell .rsg-pos { font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted); }
+    .rsg-cell .rsg-mod { font-size:10px;color:var(--success);margin-top:2px;text-align:center;word-break:break-all; }
+    .rsg-cell select { width:100%;font-size:11px;padding:3px;background:var(--bg);border:1px solid var(--border);color:var(--txt);border-radius:4px;margin-top:3px; }
+  </style>
+</head>
+<body>
+<div class="scan-toast" id="scanToast"></div>
+
+<header>
+  <div>
+    <div class="h-title">PRE PACKING</div>
+    <div class="h-sub">Control por módulo — Escaneo automático de piezas</div>
+  </div>
+  <div class="h-right">
+    <div class="scan-status idle" id="scanStatus">
+      <div class="scan-dot"></div>
+      <span id="scanStatusTxt">Seleccionar servicio</span>
+    </div>
+    <div class="last-scan" id="lastScan"></div>
+  </div>
+</header>
+
+<main>
+  <section class="card no-print">
+    <div class="card-label">Servicio y control</div>
+    <div class="svc-row">
+      <div style="flex:2;min-width:300px">
+        <div class="flabel">Servicio</div>
+        <select id="selService" style="width:100%"><option value="">Seleccionar servicio...</option></select>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div class="flabel">Scan manual (backup)</div>
+        <input id="manualScan" placeholder="ID pieza + Enter" style="width:100%" />
+      </div>
+      <button class="btn" id="btnResync" disabled title="Re-descargar piezas de MobCloud">↻ Re-sync</button>
+      <button class="btn" id="btnUndo" disabled>↩ Deshacer</button>
+      <button class="btn btn-danger" id="btnReset" disabled>Resetear</button>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" id="chkMissing" /> Solo faltantes
+      </label>
+      <button class="btn" id="btnPrint" disabled>Imprimir</button>
+      <button class="btn" id="btnRack" disabled style="border-color:rgba(88,166,255,.3);color:var(--accent)">⊞ Config Rack</button>
+      <button class="btn" id="btnRackScreen" disabled style="border-color:rgba(63,185,80,.3);color:var(--success)">↗ Pantalla Rack</button>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--muted)">
+      <strong>Scanner automático activo:</strong> el lector de código de barras funciona sin tocar ningún campo. Apuntá y escaneá.
+    </div>
+  </section>
+
+  <!-- ── Rack position indicator (shows after scan) ── -->
+  <section class="card" id="rackIndicator" style="display:none">
+    <div style="display:flex;align-items:center;gap:20px">
+      <div id="rackPosBox" style="
+        width:120px;height:120px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+        font-family:var(--mono);font-size:52px;font-weight:900;
+        border:3px solid var(--border);background:var(--surface);color:var(--muted);
+        transition:all .4s;flex-shrink:0;
+      ">—</div>
+      <div style="flex:1">
+        <div id="rackPosModule" style="font-size:22px;font-weight:700;color:var(--txt)"></div>
+        <div id="rackPosPiece" style="font-size:14px;color:var(--muted);margin-top:4px;font-family:var(--mono)"></div>
+        <div id="rackPosCount" style="font-size:13px;color:var(--muted);margin-top:4px"></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="printHeader" style="display:none;padding:12px;font-size:13px;border-bottom:2px solid #111"></div>
+
+  <section class="card">
+    <div class="card-label">Resumen</div>
+    <div class="metrics">
+      <div class="metric" id="kpiExp"><div class="m-label">Esperadas</div><div class="m-value" id="vExp">—</div><div class="m-sub">piezas totales</div></div>
+      <div class="metric" id="kpiScan"><div class="m-label">Escaneadas</div><div class="m-value" id="vScan">—</div><div class="m-sub">confirmadas</div></div>
+      <div class="metric" id="kpiMiss"><div class="m-label">Faltantes</div><div class="m-value" id="vMiss">—</div><div class="m-sub">por escanear</div></div>
+      <div class="metric" id="kpiMod"><div class="m-label">Módulos OK</div><div class="m-value" id="vMod">—</div><div class="m-sub">de <span id="vModT">—</span></div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-label">Detalle</div>
+    <div class="detail-grid">
+      <div>
+        <div class="card-label" style="margin-top:0">Módulos</div>
+        <table><thead><tr><th>Módulo</th><th class="right">OK</th><th class="right">Faltan</th></tr></thead>
+        <tbody id="tbMod"></tbody></table>
+      </div>
+      <div>
+        <div class="card-label" style="margin-top:0">Piezas</div>
+        <table><thead><tr><th>Pieza</th><th style="text-align:right">Esc/Exp</th><th style="text-align:right">Faltan</th></tr></thead>
+        <tbody id="tbPcs"></tbody></table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ── Rack Setup Modal ── -->
+<div class="modal-bg" id="rackModal">
+  <div class="modal-box">
+    <div class="modal-title">Configurar Rack — Asignar módulos a posiciones</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
+      Hacé click en una celda para asignar un módulo. Nivel 1 = arriba, 6 = piso.
+    </p>
+    <div class="rack-setup-grid" id="rackSetupGrid"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn" onclick="autoAssignRack()">Auto-asignar</button>
+      <button class="btn btn-danger" onclick="clearRack()">Limpiar todo</button>
+      <button class="btn" onclick="saveRack()" style="border-color:rgba(63,185,80,.3);color:var(--success)">Guardar</button>
+      <button class="btn" onclick="closeRackModal()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = "https://qnjizqowddtvzzfillmo.supabase.co";
+const SB_KEY = "sb_publishable_Agu_I1nw4mY1qRARQBbaHQ_6lTWsFTh";
+const sb = supabase.createClient(SB_URL, SB_KEY);
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+// ── Audio ──
+let actx = null;
+function initAudio() { if (!actx) try { actx = new (window.AudioContext||window.webkitAudioContext)(); } catch{} }
+function tone(f=880,ms=90,t="sine",g=0.06) {
+  if (!actx) return; if (actx.state==="suspended") actx.resume();
+  const o=actx.createOscillator(), gn=actx.createGain();
+  o.type=t; o.frequency.value=f; gn.gain.value=g;
+  o.connect(gn); gn.connect(actx.destination);
+  o.start(); setTimeout(()=>{o.stop();o.disconnect();gn.disconnect()},ms);
+}
+function beepOk(){tone(880,80)} function beepExcess(){tone(660,120,"sine",0.04)}
+function beepErr(){tone(240,110,"square",0.05);setTimeout(()=>tone(200,140,"square",0.05),140)}
+window.addEventListener("pointerdown",()=>{initAudio();if(actx?.state==="suspended")actx.resume()},{once:true});
+
+// ── Toast ──
+let toastT;
+function toast(msg,type="ok") {
+  const t=$("scanToast"); t.textContent=msg;
+  t.className=`scan-toast ${type} show`;
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+// ════════════════════════════════════════════
+// GLOBAL BARCODE SCANNER
+// Barcode readers type chars rapidly (~10-30ms between chars)
+// then send Enter. We detect this pattern globally.
+// ════════════════════════════════════════════
+let scanBuf = "";
+let scanTime = 0;
+const SCAN_GAP = 80;   // max ms between chars
+const SCAN_MIN = 3;     // min length for valid barcode
+
+document.addEventListener("keydown", (e) => {
+  const tag = e.target.tagName;
+  
+  // Manual input field: only intercept Enter
+  if (tag === "INPUT" && e.target.id === "manualScan") {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const v = e.target.value.trim(); e.target.value = "";
+      if (v) processScan(v);
+    }
+    return;
+  }
+  // Don't intercept typing in select/input/textarea
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+
+  const now = Date.now();
+
+  if (e.key === "Enter") {
+    e.preventDefault();
+    if (scanBuf.length >= SCAN_MIN) processScan(scanBuf);
+    scanBuf = "";
+    return;
+  }
+
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    const gap = now - scanTime;
+    if (gap > 500) scanBuf = e.key;            // fresh start
+    else if (gap < SCAN_GAP) scanBuf += e.key; // rapid = barcode
+    else scanBuf = e.key;                       // slow = reset
+    scanTime = now;
+
+    if (scanBuf.length >= 2) setScanStatus("scanning", `Leyendo: ${scanBuf}...`);
+  }
+});
+
+function setScanStatus(state, txt) {
+  $("scanStatus").className = `scan-status ${state}`;
+  $("scanStatusTxt").textContent = txt;
+}
+
+// ── Data ──
+let curService = null;
+let pieceMap = new Map();
+let services = [];
+
+// Edge Function caller
+async function invokeFunction(name, payload) {
+  const res = await fetch(`${SB_URL}/functions/v1/${name}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SB_KEY}`, "apikey": SB_KEY },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`${name}: ${res.status}`);
+  return res.json();
+}
+
+async function loadServices() {
+  setScanStatus("scanning", "Cargando servicios en producción...");
+  
+  try {
+    // Fetch production list from MobCloud via Edge Function
+    const prodServices = await invokeFunction("production-service", { action: "list-production" });
+    
+    services = (prodServices || []).map(s => ({
+      service_id: s.service_id,
+      service_name: s.internal_code || `Servicio ${s.service_id}`,
+      client_name: s.client_name || "",
+      production_line: s.production_line || "",
+      has_parts: s.has_parts_cached,
+      step_cut: s.step_cut,
+      step_edge: s.step_edge,
+      step_machining: s.step_machining,
+      step_packing: s.step_packing,
+    }));
+
+    $("selService").innerHTML = `<option value="">Seleccionar servicio (${services.length} en producción)...</option>` +
+      services.map(s => {
+        const badge = s.has_parts ? "✓" : "⚠";
+        return `<option value="${s.service_id}" ${!s.has_parts?"style='color:#d29922'":""}>${badge} ${esc(s.service_name)} — ${esc(s.client_name)}</option>`;
+      }).join("");
+
+    setScanStatus("idle", "Seleccionar servicio");
+  } catch (e) {
+    console.error("loadServices:", e);
+    // Fallback: load from local cache
+    console.log("Falling back to local cache...");
+    const { data } = await sb.from("cnc_part_service_map")
+      .select("service_id, service_name, client_name, quote_ref").limit(10000);
+    const byId = {};
+    for (const r of data||[]) if (!byId[r.service_id]) byId[r.service_id] = r;
+    services = Object.values(byId).sort((a,b) => (a.service_name||"").localeCompare(b.service_name||""));
+    services.forEach(s => s.has_parts = true);
+
+    $("selService").innerHTML = `<option value="">Seleccionar servicio (cache local)...</option>` +
+      services.map(s => `<option value="${s.service_id}">${esc(s.service_name)} — ${esc(s.client_name||"")}</option>`).join("");
+
+    setScanStatus("idle", "Seleccionar servicio (offline)");
+  }
+}
+
+async function loadPacking(sid) {
+  curService = sid;
+  const [sR,mR,pR] = await Promise.all([
+    sb.from("vw_packing_service_progress").select("*").eq("service_id",sid).maybeSingle(),
+    sb.from("vw_packing_module_progress").select("*").eq("service_id",sid).order("module_label"),
+    sb.from("vw_packing_piece_progress").select("*").eq("service_id",sid).order("module_label").order("sequence").order("piece_id"),
+  ]);
+  if (sR.error) throw sR.error;
+  if (mR.error) throw mR.error;
+  if (pR.error) throw pR.error;
+  renderAll(sR.data, mR.data||[], pR.data||[]);
+  setScanStatus("listening","Listo para escanear");
+  $("btnUndo").disabled=false; $("btnReset").disabled=false; $("btnPrint").disabled=false; $("btnResync").disabled=false;
+  $("btnRack").disabled=false; $("btnRackScreen").disabled=false;
+  await loadRackConfig(sid);
+}
+
+function renderAll(sp, mods, pcs) {
+  pieceMap = new Map();
+  const exp=+(sp?.expected||0), sc=+(sp?.scanned||0), mis=+(sp?.missing||0);
+  const okM = mods.filter(m=>m.complete).length;
+
+  $("vExp").textContent=exp; $("vScan").textContent=sc; $("vMiss").textContent=mis;
+  $("vMod").textContent=okM; $("vModT").textContent=mods.length||"—";
+  $("kpiMiss").className=`metric ${mis>0?"bad":"ok"}`;
+  $("kpiScan").className=`metric ${sc>0&&sc>=exp?"ok":""}`;
+
+  // Print header
+  const svc = services.find(s=>+s.service_id===+curService);
+  const nm = svc?svc.service_name:`Servicio ${curService}`;
+  const cl = svc?.client_name?` — ${svc.client_name}`:"";
+  $("printHeader").textContent=`${nm}${cl} • REMITO INTERNO • ${new Date().toLocaleString("es-UY")} • Piezas: ${sc}/${exp} • Faltan: ${mis} • Módulos: ${okM}/${mods.length}`;
+
+  // Modules
+  $("tbMod").innerHTML = mods.map(m => {
+    const tag = m.complete?`<span class="tag ok">COMPLETO</span>`:`<span class="tag warn">PENDIENTE</span>`;
+    return `<tr class="${m.complete?"row-mod-ok":""}">
+      <td><div style="font-weight:700">${esc(m.module_label||"(sin módulo)")}</div>
+      <div style="font-size:12px;color:var(--muted)">${tag} • ${+m.scanned}/${+m.expected}</div></td>
+      <td style="text-align:right">${m.complete?"✓":"—"}</td>
+      <td style="text-align:right">${+m.missing}</td></tr>`;
+  }).join("");
+
+  // Pieces
+  let lastMod = null;
+  $("tbPcs").innerHTML = pcs.map(p => {
+    const e=+p.qty_expected, s=+p.qty_scanned, m=+p.qty_missing, x=+p.qty_excess;
+    let tag,cls;
+    if(x>0){tag=`<span class="tag info">EXCESO +${x}</span>`;cls="row-excess";}
+    else if(m===0&&e>0){tag=`<span class="tag ok">OK</span>`;cls="row-ok";}
+    else if(s>0&&m>0){tag=`<span class="tag warn">PARCIAL</span>`;cls="row-partial";}
+    else{tag=`<span class="tag bad">FALTA</span>`;cls="row-missing";}
+
+    let sep="";
+    const mod=p.module_label||"";
+    if(mod!==lastMod){lastMod=mod; sep=`<tr style="background:var(--surface)"><td colspan="3" style="font-weight:700;font-size:12px;color:var(--accent);padding:8px">${esc(mod||"(sin módulo)")}</td></tr>`;}
+
+    pieceMap.set(+p.piece_id,{expected:e,scanned:s,missing:m,excess:x});
+
+    return `${sep}<tr class="${cls}" id="pc-${p.piece_id}">
+      <td><div style="font-weight:600">${esc(p.piece_label)}</div>
+      ${p.complement?`<div style="font-size:11px;color:var(--muted)">${esc(p.complement)}</div>`:""}
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">ID: ${p.piece_id}</div></td>
+      <td style="text-align:right;white-space:nowrap">${tag} <span style="font-family:var(--mono)">${s}/${e}</span></td>
+      <td style="text-align:right;font-family:var(--mono)">${m}</td></tr>`;
+  }).join("");
+}
+
+// ── Scan ──
+async function processScan(raw) {
+  initAudio();
+  if (!curService) { beepErr(); toast("Seleccioná un servicio","error"); setScanStatus("idle","Seleccionar servicio"); return; }
+
+  // Extract piece ID: barcode = "605019186", QR = "http://qrmc.net/605019186"
+  const match = raw.match(/(\d{6,})(?:\D*$)/);
+  const pid = match ? parseInt(match[1], 10) : NaN;
+  if (!pid||isNaN(pid)) { beepErr(); toast(`Código inválido: ${raw}`,"error"); setScanStatus("listening","Listo"); return; }
+
+  const info = pieceMap.get(pid);
+  if (!info) {
+    beepErr(); toast(`⚠ Pieza ${pid} NO pertenece a este servicio`,"error");
+    if(navigator.vibrate)navigator.vibrate([80,60,80]);
+    setScanStatus("listening","Listo"); return;
+  }
+
+  try {
+    const {error} = await sb.rpc("fn_packing_ready_scan",{p_service_id:+curService,p_piece_id:pid,p_qty:1,p_scanned_by:null});
+    if(error) throw error;
+    await loadPacking(curService);
+    const u = pieceMap.get(pid);
+    if (u && u.excess > 0) {
+      beepExcess();
+      toast(`Pieza ${pid} — EXCESO (${u.scanned}/${u.expected})`,"excess");
+    } else if (u && u.missing === 0) {
+      beepOk();
+      toast(`✓ Pieza ${pid} COMPLETA (${u.scanned}/${u.expected})`,"ok");
+    } else {
+      beepOk();
+      toast(`Pieza ${pid} — parcial (${u?.scanned||0}/${u?.expected||0})`,"warn");
+    }
+    flashRow(pid);
+    showRackPosition(pid);
+    $("lastScan").innerHTML=`Último: <strong>${pid}</strong> — ${new Date().toLocaleTimeString("es-UY")}`;
+  } catch(e) { console.error(e); beepErr(); toast(`Error: ${e.message}`,"error"); }
+  setScanStatus("listening","Listo para escanear");
+}
+
+function flashRow(pid) {
+  const row = document.getElementById(`pc-${pid}`);
+  if(!row)return;
+  
+  // Remove all flash classes and force reflow to restart animation
+  row.classList.remove("flash-ok","flash-warn","flash-info","flash-bad");
+  void row.offsetWidth; // force reflow
+  
+  const i = pieceMap.get(pid);
+  let cls = "flash-ok";
+  if (i) {
+    if (i.excess > 0) cls = "flash-info";          // blue: excess
+    else if (i.missing === 0) cls = "flash-ok";     // green: complete
+    else if (i.scanned > 0) cls = "flash-warn";     // yellow: partial
+    else cls = "flash-bad";                          // red: still zero
+  }
+  
+  row.classList.add(cls);
+  row.scrollIntoView({behavior:"smooth",block:"center"});
+  setTimeout(()=>row.classList.remove("flash-ok","flash-warn","flash-info","flash-bad"), 1500);
+}
+
+// ── Events ──
+$("selService").addEventListener("change",async()=>{
+  const sid=+$("selService").value;
+  if(!sid){curService=null;setScanStatus("idle","Seleccionar servicio");return;}
+  
+  const svc = services.find(s=>+s.service_id===sid);
+  let needsSync = svc && !svc.has_parts;
+  
+  // Check if cached data has module info (might be old format)
+  if (!needsSync) {
+    try {
+      const { data } = await sb.from("vw_packing_piece_progress")
+        .select("module_label").eq("service_id", sid).limit(1);
+      if (!data?.length || data[0].module_label === "(SIN MODULO)") needsSync = true;
+    } catch { needsSync = true; }
+  }
+  
+  if (needsSync) {
+    setScanStatus("scanning","Sincronizando piezas desde MobCloud...");
+    toast("Descargando piezas del servicio...","ok");
+    try {
+      const result = await invokeFunction("production-service", { action: "sync-parts", service_id: sid });
+      if (svc) svc.has_parts = true;
+      toast(`✓ ${result.parts_count} piezas sincronizadas`,"ok");
+    } catch(e) {
+      console.error("sync-parts:", e);
+      toast(`Error sincronizando: ${e.message}`,"error");
+      setScanStatus("idle","Error al sincronizar");
+      return;
+    }
+  }
+  
+  setScanStatus("scanning","Cargando...");
+  try{await loadPacking(sid);}catch(e){console.error(e);toast("Error cargando","error");setScanStatus("idle","Error");}
+});
+
+$("btnResync").addEventListener("click",async()=>{
+  if(!curService)return;
+  setScanStatus("scanning","Re-sincronizando piezas...");
+  try{
+    const result = await invokeFunction("production-service",{action:"sync-parts",service_id:+curService});
+    toast(`✓ ${result.parts_count} piezas re-sincronizadas`,"ok");
+    await loadPacking(curService);
+  }catch(e){beepErr();toast(`Error: ${e.message}`,"error");setScanStatus("listening","Listo");}
+});
+
+$("btnUndo").addEventListener("click",async()=>{
+  if(!curService)return;
+  try{await sb.rpc("fn_packing_ready_undo",{p_service_id:+curService});await loadPacking(curService);beepOk();toast("↩ Deshecho","ok");}
+  catch(e){beepErr();toast("Error","error");}
+});
+
+$("btnReset").addEventListener("click",async()=>{
+  if(!curService||!confirm("¿Resetear TODOS los scans?"))return;
+  try{await sb.rpc("fn_packing_ready_reset",{p_service_id:+curService});await loadPacking(curService);beepOk();toast("Reseteado","ok");}
+  catch(e){beepErr();toast("Error","error");}
+});
+
+$("btnPrint").addEventListener("click",async()=>{
+  if(!curService)return;
+  await loadPacking(curService);
+  document.body.dataset.pm=$("chkMissing").checked?"1":"0";
+  const svc=services.find(s=>+s.service_id===+curService);
+  const old=document.title;
+  document.title=`${svc?.service_name||"Servicio"} - REMITO`;
+  window.print();
+  setTimeout(()=>{document.title=old;document.body.dataset.pm="0";},500);
+});
+
+// ══════════════════════════════════════════════
+// RACK CONFIGURATION
+// ══════════════════════════════════════════════
+const COLS = ["A","B","C","D","E","F"];
+const LEVELS = [1,2,3,4,5,6];
+let rackMap = {};           // module_label → {col, level}
+let rackModules = [];       // available module_labels for current service
+let rackSetupState = {};    // pos → module_label (temp state while editing)
+
+async function loadRackConfig(serviceId) {
+  rackMap = {};
+  const { data } = await sb.from("rack_config").select("*").eq("service_id", serviceId);
+  for (const r of data || []) {
+    rackMap[r.module_label] = { col: r.rack_col, level: r.rack_level };
+  }
+}
+
+function getModulesFromPieces() {
+  // Extract unique module labels from piece data
+  const mods = new Set();
+  document.querySelectorAll("[id^='pc-']").forEach(el => {
+    // Read from rendered data, or from pieceMap
+  });
+  // Better: read from table module separators
+  const modRows = document.querySelectorAll("#tbMod tr");
+  modRows.forEach(tr => {
+    const txt = tr.querySelector("div[style*='font-weight']")?.textContent?.trim();
+    if (txt && txt !== "(sin módulo)") mods.add(txt);
+  });
+  // Also from pieceMap values
+  for (const [, info] of pieceMap) {
+    // pieceMap doesn't have module, but we stored modules in vw data
+  }
+  return [...mods].sort();
+}
+
+async function loadModuleLabels(serviceId) {
+  const { data } = await sb.from("vw_packing_module_progress")
+    .select("module_label").eq("service_id", serviceId);
+  rackModules = (data || []).map(d => d.module_label).filter(m => m && m !== "(SIN MODULO)").sort();
+}
+
+// ── Rack position display after scan ──
+function showRackPosition(pieceId) {
+  // Find which module this piece belongs to
+  const rows = document.querySelectorAll("[id^='pc-']");
+  let moduleLabel = null;
+  let pieceName = null;
+  let countText = "";
+  
+  // Look through the rendered pieces table to find module
+  const pieceRow = document.getElementById(`pc-${pieceId}`);
+  if (pieceRow) {
+    // Walk backwards to find module separator
+    let prev = pieceRow.previousElementSibling;
+    while (prev) {
+      if (prev.style?.background?.includes("surface") || prev.querySelector("[style*='color:var(--accent)']")) {
+        moduleLabel = prev.textContent?.trim();
+        break;
+      }
+      prev = prev.previousElementSibling;
+    }
+    pieceName = pieceRow.querySelector("div[style*='font-weight']")?.textContent?.trim() || `Pieza ${pieceId}`;
+    const countEl = pieceRow.querySelector("[style*='font-family:var(--mono)']");
+    countText = countEl?.textContent?.trim() || "";
+  }
+
+  if (!moduleLabel) {
+    $("rackIndicator").style.display = "none";
+    return;
+  }
+
+  const pos = rackMap[moduleLabel];
+  const box = $("rackPosBox");
+  const indicator = $("rackIndicator");
+  indicator.style.display = "block";
+
+  const info = pieceMap.get(+pieceId);
+  const isComplete = info && info.missing <= 0;
+  const isExcess = info && info.excess > 0;
+
+  if (pos) {
+    const code = `${pos.col}${pos.level}`;
+    box.textContent = code;
+    if (isExcess) {
+      box.style.borderColor = "var(--info)";
+      box.style.color = "var(--info)";
+      box.style.background = "rgba(88,166,255,.1)";
+    } else if (isComplete) {
+      box.style.borderColor = "var(--success)";
+      box.style.color = "var(--success)";
+      box.style.background = "rgba(63,185,80,.1)";
+    } else {
+      box.style.borderColor = "var(--warning)";
+      box.style.color = "var(--warning)";
+      box.style.background = "rgba(210,153,34,.1)";
+    }
+  } else {
+    box.textContent = "??";
+    box.style.borderColor = "var(--muted)";
+    box.style.color = "var(--muted)";
+    box.style.background = "var(--surface)";
+  }
+
+  $("rackPosModule").textContent = moduleLabel;
+  $("rackPosPiece").textContent = pieceName;
+  $("rackPosCount").textContent = countText ? `Scaneado: ${countText}` : "";
+}
+
+// ── Rack setup modal ──
+function openRackModal() {
+  // Build temp state from current rackMap
+  rackSetupState = {};
+  for (const [mod, pos] of Object.entries(rackMap)) {
+    rackSetupState[`${pos.col}${pos.level}`] = mod;
+  }
+  renderRackSetupGrid();
+  $("rackModal").classList.add("show");
+}
+
+function closeRackModal() {
+  $("rackModal").classList.remove("show");
+}
+
+function renderRackSetupGrid() {
+  const grid = $("rackSetupGrid");
+  grid.innerHTML = `<div></div>` + COLS.map(c => `<div class="rsg-header">${c}</div>`).join("");
+
+  for (const lv of LEVELS) {
+    grid.innerHTML += `<div class="rsg-header" style="display:flex;align-items:center;justify-content:center">${lv}</div>`;
+    for (const col of COLS) {
+      const pos = `${col}${lv}`;
+      const assigned = rackSetupState[pos] || "";
+      const cls = assigned ? "rsg-cell has-module" : "rsg-cell";
+
+      // Build options: unassigned modules + current one
+      const usedMods = new Set(Object.values(rackSetupState));
+      const available = rackModules.filter(m => !usedMods.has(m) || m === assigned);
+
+      grid.innerHTML += `<div class="${cls}" id="rsg-${pos}">
+        <div class="rsg-pos">${pos}</div>
+        <select onchange="assignCell('${pos}',this.value)">
+          <option value="">—</option>
+          ${available.map(m => `<option value="${esc(m)}" ${m===assigned?"selected":""}>${esc(m)}</option>`).join("")}
+        </select>
+        ${assigned ? `<div class="rsg-mod">${esc(assigned)}</div>` : ""}
+      </div>`;
+    }
+  }
+}
+
+function assignCell(pos, moduleLabel) {
+  // Remove old assignment of this module
+  for (const [p, m] of Object.entries(rackSetupState)) {
+    if (m === moduleLabel) delete rackSetupState[p];
+  }
+  // Remove current assignment of this cell
+  if (!moduleLabel) {
+    delete rackSetupState[pos];
+  } else {
+    rackSetupState[pos] = moduleLabel;
+  }
+  renderRackSetupGrid();
+}
+
+function autoAssignRack() {
+  rackSetupState = {};
+  let idx = 0;
+  // Fill column by column, top to bottom
+  for (const col of COLS) {
+    for (const lv of LEVELS) {
+      if (idx >= rackModules.length) break;
+      rackSetupState[`${col}${lv}`] = rackModules[idx++];
+    }
+    if (idx >= rackModules.length) break;
+  }
+  renderRackSetupGrid();
+}
+
+function clearRack() {
+  rackSetupState = {};
+  renderRackSetupGrid();
+}
+
+async function saveRack() {
+  if (!curService) return;
+
+  // Delete old config
+  await sb.from("rack_config").delete().eq("service_id", +curService);
+
+  // Insert new
+  const rows = [];
+  for (const [pos, mod] of Object.entries(rackSetupState)) {
+    if (!mod) continue;
+    rows.push({
+      service_id: +curService,
+      module_label: mod,
+      rack_col: pos[0],
+      rack_level: parseInt(pos.slice(1)),
+    });
+  }
+
+  if (rows.length) {
+    const { error } = await sb.from("rack_config").insert(rows);
+    if (error) { toast(`Error guardando: ${error.message}`, "error"); return; }
+  }
+
+  // Reload
+  await loadRackConfig(curService);
+  toast(`Rack guardado: ${rows.length} posiciones`, "ok");
+  closeRackModal();
+}
+
+$("btnRack").addEventListener("click", async () => {
+  if (!curService) return;
+  await loadModuleLabels(curService);
+  openRackModal();
+});
+
+$("btnRackScreen").addEventListener("click", () => {
+  if (!curService) return;
+  window.open(`prepacking-rack.html?service=${curService}`, "_blank");
+});
+
+$("rackModal").addEventListener("click", (e) => {
+  if (e.target === $("rackModal")) closeRackModal();
+});
+
+// ── Boot ──
+(async()=>{try{await loadServices();}catch(e){console.error(e);toast("Error","error");}})();
+</script>
+</body>
+</html>
