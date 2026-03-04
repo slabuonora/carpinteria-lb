@@ -267,7 +267,8 @@
     <button class="nav-tab disabled" onclick="switchModule('instalacion')" id="tab-instalacion">Instalación</button>
   </nav>
   <div class="header-actions">
-    <a href="https://produccion-1z9.pages.dev/" class="btn btn-secondary" style="font-size:11px;padding:5px 10px;background:#7c3aed;color:#fff;text-decoration:none;border-radius:6px" title="Ir a Producción">⚙ Producción</a>
+    <a href="produccion.html" class="btn btn-secondary btn-sm" style="text-decoration:none;background:#7c3aed;color:#fff" title="Ir a Producción">Producción</a>
+    <a href="index.html" class="btn btn-sm btn-secondary" style="text-decoration:none">← Inicio</a>
     <button class="dark-toggle" onclick="toggleDark()" title="Modo oscuro/claro">◐</button>
   </div>
 </div>
@@ -1391,6 +1392,7 @@ function renderDashboardCards(quotes, container) {
             <button class="btn btn-sm btn-secondary" onclick="duplicateQuote('${q.id}')">Duplicar</button>
             <button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d" onclick="createInstallationQuote('${q.id}')" title="Crear propuesta de instalación basada en este suministro">🔧 Instalación</button>
             ${q.status === 'accepted' && !quotesConObra.has(q.id) ? `<button class="btn btn-sm btn-success" onclick="event.stopPropagation();crearObraDesdeQuote('${q.id}','${escH(q.obra)}')">🏗️ Crear obra</button>` : ''}
+            <button class="btn btn-sm" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd" onclick="event.stopPropagation();crearLicitacion('${q.id}','${escH(q.obra||q.cliente_nombre||'')}')" title="Crear licitación de instalación">📋 Licitar</button>
             ${isArchived
               ? `<button class="btn btn-sm btn-secondary" onclick="archiveQuote('${q.id}', false)">Desarchivar</button>`
               : `<button class="btn btn-sm btn-secondary" onclick="archiveQuote('${q.id}', true)">Archivar</button>`
@@ -4910,6 +4912,10 @@ setTimeout(async () => {
     }
   }
 }, 500);
+function crearLicitacion(quoteId, nombre) {
+  if (!confirm(`¿Crear licitación para "${nombre}"?\n\nSe abrirá Licitaciones con los items pre-cargados.`)) return;
+  window.open(`licitaciones.html?action=crear_desde_quote&quote_id=${quoteId}`, '_blank');
+}
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CarpinterIA · Presupuestos v6.1</title>
+  <title>CarpinterIA · Presupuestos v6.2</title>
   <!-- No supabase-js CDN needed: all calls go through invokeFunction → Edge Functions -->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
@@ -161,8 +161,9 @@
   <h1>CarpinterIA</h1>
   <span class="subtitle">Presupuestos</span>
   <div class="header-actions">
-    <a href="obras.html" class="btn btn-secondary" style="font-size:11px;padding:5px 10px;background:#10b981;color:#fff;text-decoration:none;border-radius:6px" title="Ir a Obras">🏗️ Obras</a>
-    <a href="https://produccion-1z9.pages.dev/" class="btn btn-secondary" style="font-size:11px;padding:5px 10px;background:#7c3aed;color:#fff;text-decoration:none;border-radius:6px" title="Ir a Producción">⚙ Producción</a>
+    <a href="obras.html" class="btn btn-secondary btn-sm" style="text-decoration:none;background:#10b981;color:#fff" title="Ir a Obras">Obras</a>
+    <a href="produccion.html" class="btn btn-secondary btn-sm" style="text-decoration:none;background:#7c3aed;color:#fff" title="Ir a Producción">Producción</a>
+    <a href="index.html" class="btn btn-sm btn-secondary" style="text-decoration:none">← Inicio</a>
     <button class="dark-toggle" onclick="toggleDark()" title="Modo oscuro/claro">◐</button>
   </div>
 </div>
@@ -294,6 +295,7 @@
             <button class="btn btn-sm btn-primary" onclick="switchSubTab('services')" style="font-size:11px;padding:4px 10px">+ Servicios</button>
             <button class="btn btn-sm btn-success" onclick="addManualItem()" style="font-size:11px;padding:4px 10px">+ Manual</button>
             <button class="btn btn-sm" onclick="refreshAllPrices()" style="background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;font-size:11px;padding:4px 10px" title="Resincronizar precios MobCloud">↻ Actualizar precios</button>
+            <button class="btn btn-sm" onclick="autoFillDescriptions()" style="background:#fef3c7;color:#92400e;border:1px solid #fbbf24;font-size:11px;padding:4px 10px" title="Auto-llenar Encabezado y Descripcion desde MobCloud">✎ Auto-llenar</button>
             <span style="margin-left:auto">
               <label style="font-size:11px;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:4px;margin:0">
                 <input type="checkbox" id="chkShowDetail" onchange="renderItems()" /> Detalle MobCloud
@@ -945,14 +947,21 @@ function tcBtn(label, value, cur) {
 }
 function escH(s) { return (s||"").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
 
-async function invokeFunction(name, body={}) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
-    method: "POST", headers: { "Content-Type":"application/json", "x-app-key":APP_KEY, "apikey":SUPABASE_ANON_KEY },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || `${name} failed: ${res.status}`);
-  return data;
+async function invokeFunction(name, body={}, timeoutMs=60000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
+      method: "POST", headers: { "Content-Type":"application/json", "x-app-key":APP_KEY, "apikey":SUPABASE_ANON_KEY },
+      body: JSON.stringify(body), signal: ctrl.signal,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `${name} failed: ${res.status}`);
+    return data;
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error(`${name}: timeout (${timeoutMs/1000}s)`);
+    throw e;
+  } finally { clearTimeout(timer); }
 }
 
 // ══════════════════════════════════════════════
@@ -1123,6 +1132,7 @@ function renderDashboardCards(quotes, container) {
             <button class="btn btn-sm btn-primary" style="font-size:11px;padding:4px 8px" onclick="loadQuote('${q.id}')">Editar</button>
             <button class="btn btn-sm btn-secondary" style="font-size:11px;padding:4px 8px" onclick="duplicateQuote('${q.id}')">Duplicar</button>
             <button class="btn btn-sm" style="font-size:11px;padding:4px 8px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d" onclick="createInstallationQuote('${q.id}')" title="Crear propuesta de instalación basada en este suministro">🔧 Instal.</button>
+            <button class="btn btn-sm" style="font-size:11px;padding:4px 8px;background:#dbeafe;color:#1e40af;border:1px solid #93c5fd" onclick="event.stopPropagation();crearLicitacion('${q.id}','${escH(q.obra||q.cliente||'')}')" title="Crear licitación de instalación">📋 Licitar</button>
             ${isArchived
               ? `<button class="btn btn-sm btn-secondary" style="font-size:11px;padding:4px 8px" onclick="archiveQuote('${q.id}', false)">Desarchivar</button>`
               : `<button class="btn btn-sm btn-secondary" style="font-size:11px;padding:4px 8px" onclick="archiveQuote('${q.id}', true)">Archivar</button>`
@@ -1414,9 +1424,12 @@ function updateSummaryBars() {
 // ══════════════════════════════════════════════
 async function loadServices(source = "cache") {
   const isMob = source === "mobcloud";
+  const t0 = Date.now();
   showLoading(isMob ? "Sincronizando MobCloud..." : "Cargando cotizaciones...");
+  console.log(`[loadServices] START source=${source}`);
   try {
-    const data = await invokeFunction("sales-quotes-list", { source, persist: true });
+    const data = await invokeFunction("sales-quotes-list", { source, persist: true }, isMob ? 90000 : 60000);
+    console.log(`[loadServices] OK in ${Date.now()-t0}ms, ${(data.services||[]).length} services`);
     services = data.services || [];
     filteredServices = [...services];
     document.getElementById("countBadge").textContent = services.length;
@@ -1430,6 +1443,7 @@ async function loadServices(source = "cache") {
     const syncInfo = data.last_sync ? ` (sync: ${new Date(data.last_sync).toLocaleString()})` : "";
     toast(`${services.length} cotizaciones [${srcLabel}]${syncInfo}`, "success");
   } catch(e) {
+    console.error(`[loadServices] FAILED in ${Date.now()-t0}ms:`, e);
     // Fallback: try localStorage
     try {
       const cached = JSON.parse(localStorage.getItem("mc_services_cache") || "[]");
@@ -1530,9 +1544,12 @@ const USER_EDIT_FIELDS = ['tipo','ambiente','description_override','qty','discou
 
 async function toggleService(sid, checked) {
   if (checked) {
+    const t0 = Date.now();
     showLoading("Cargando precio...");
+    console.log(`[toggleService] START sid=${sid}`);
     try {
-      const detail = await invokeFunction("sales-quotes-service", { service_id: sid });
+      const detail = await invokeFunction("sales-quotes-service", { service_id: sid }, 90000);
+      console.log(`[toggleService] OK sid=${sid} in ${Date.now()-t0}ms price=${detail.latest_total_price}`);
       const svc = services.find(s=>s.service_id===sid)||{};
       const existing = selected[sid];
 
@@ -1545,7 +1562,7 @@ async function toggleService(sid, checked) {
           userEdits._unit_price_usd = existing._unit_price_usd || existing._unit_price;
           userEdits._unit_price = existing._unit_price_usd || existing._unit_price;
         }
-        selected[sid] = { ...detail, _base_qty:svc.quantity||1, descripcion:svc.client_name||`Servicio #${sid}`, ...userEdits };
+        selected[sid] = { ...detail, _base_qty:svc.quantity||1, descripcion:"", ...userEdits };
         toast(`#${sid}: precio actualizado, edits preservados`,"success");
       } else {
         // ── NEW: create from scratch ──
@@ -1554,7 +1571,19 @@ async function toggleService(sid, checked) {
           return di >= 0 ? n.substring(di+3).trim() : n;
         }).filter(Boolean);
         const _tipo = _envNames.length ? _envNames.join(', ') : "";
-        selected[sid] = { ...detail, qty:svc.quantity||1, _base_qty:svc.quantity||1, tipo:_tipo, ambiente:"", descripcion:svc.client_name||`Servicio #${sid}`,
+        // Auto-populate ambiente from client_name suffix (e.g. "LA GUADALUPE - BARBACOA C11" → "BARBACOA C11")
+        const _clientName = svc.client_name || "";
+        const _obraVal = document.getElementById("fObra").value.trim().toUpperCase();
+        let _autoAmb = "";
+        if (_clientName.includes(' - ')) {
+          const _suffix = _clientName.substring(_clientName.indexOf(' - ') + 3).trim();
+          if (_suffix && _suffix !== _tipo) _autoAmb = _suffix;
+        } else if (_clientName && _obraVal && _clientName.toUpperCase() !== _obraVal) {
+          // client_name differs from obra — use full name as context
+          const _cleaned = _clientName.replace(new RegExp(_obraVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), '').replace(/^[\s\-]+|[\s\-]+$/g, '').trim();
+          if (_cleaned) _autoAmb = _cleaned;
+        }
+        selected[sid] = { ...detail, qty:svc.quantity||1, _base_qty:svc.quantity||1, tipo:_tipo, ambiente:_autoAmb, descripcion:"",
           description_override:"", discount_pct:0, markup_pct:0, extra_material:0, override_total:null, notes_internal:"" };
         // Restore from cache if service was previously removed then re-added
         const hadCache = !!itemEditsCache[sid];
@@ -1592,26 +1621,33 @@ async function refreshAllPrices() {
   const sids = Object.keys(selected);
   if (!sids.length) { toast("No hay servicios seleccionados","info"); return; }
   showLoading(`Actualizando ${sids.length} servicios...`);
-  let updated = 0;
-  for (const sid of sids) {
-    try {
-      const detail = await invokeFunction("sales-quotes-service", { service_id: sid });
+  let updated = 0, failed = 0;
+  // Process in batches of 3 concurrent requests
+  const BATCH = 3;
+  for (let i = 0; i < sids.length; i += BATCH) {
+    const batch = sids.slice(i, i + BATCH);
+    showLoading(`Actualizando servicios ${i+1}-${Math.min(i+BATCH, sids.length)} de ${sids.length}...`);
+    const results = await Promise.allSettled(batch.map(async (sid) => {
+      const detail = await invokeFunction("sales-quotes-service", { service_id: sid }, 90000);
       const svc = services.find(s=>String(s.service_id)===String(sid))||{};
-      // Save user edits
       const userEdits = {};
       USER_EDIT_FIELDS.forEach(f => { if (selected[sid][f] !== undefined) userEdits[f] = selected[sid][f]; });
       if (selected[sid]._pi_override) {
         userEdits._unit_price_usd = selected[sid]._unit_price_usd || selected[sid]._unit_price;
         userEdits._unit_price = selected[sid]._unit_price_usd || selected[sid]._unit_price;
       }
-      // Merge: fresh MobCloud data + preserved user edits
-      selected[sid] = { ...detail, _base_qty:svc.quantity||1, descripcion:svc.client_name||`Servicio #${sid}`, ...userEdits };
-      updated++;
-    } catch(e) { console.warn(`[refresh] #${sid}: ${e.message}`); }
+      selected[sid] = { ...detail, _base_qty:svc.quantity||1, descripcion:"", ...userEdits };
+      return sid;
+    }));
+    for (const r of results) {
+      if (r.status === 'fulfilled') updated++;
+      else { failed++; console.warn(`[refresh] ${r.reason?.message}`); }
+    }
   }
   hideLoading();
   renderItems();
-  toast(`${updated}/${sids.length} precios actualizados (edits preservados)`,"success");
+  const msg = failed ? `${updated} actualizados, ${failed} fallaron` : `${updated}/${sids.length} precios actualizados`;
+  toast(msg + " (edits preservados)", failed ? "warning" : "success");
 }
 
 // ══════════════════════════════════════════════
@@ -1898,11 +1934,13 @@ function renderItems() {
       const cur = getCurrency();
       const descVal = (item.description_override||'').replace(/"/g,'&quot;');
       const priceWarn = (item.latest_total_price||0) === 0 && !item._pi_override;
+      const _mobDesc = item.descripcion || '';
+      const _mobDescShort = _mobDesc.length > 30 ? _mobDesc.substring(0,28)+'…' : _mobDesc;
       rows += `<tr${priceWarn ? ' style="background:rgba(239,68,68,0.08)"' : ''}>
-        <td>#${sid}${priceWarn ? ' <span title="MobCloud devolvió precio $0 — revisar servicio" style="color:var(--danger);cursor:help">⚠</span>' : ''}</td>
+        <td>#${sid}${_mobDesc ? `<div style="font-size:9px;color:#9ca3af;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escH(_mobDesc)}">${escH(_mobDescShort)}</div>` : ''}${priceWarn ? ' <span title="MobCloud devolvió precio $0 — revisar servicio" style="color:var(--danger);cursor:help">⚠</span>' : ''}</td>
         <td><input class="desc-input" value="${escH(item.tipo)}" onchange="updateItem('${sid}','tipo',this.value)" /></td>
         <td><input class="desc-input" value="${escH(item.ambiente||'')}" onchange="updateItem('${sid}','ambiente',this.value)" placeholder="Encabezado PDF" /></td>
-        <td><textarea class="desc-input" rows="1" onchange="updateItem('${sid}','description_override',this.value)" placeholder="Detalle tecnico...">${escH(item.description_override||'')}</textarea></td>
+        <td><textarea class="desc-input" rows="1" onchange="updateItem('${sid}','description_override',this.value)" placeholder="${escH(_mobDesc || 'Detalle tecnico...')}">${escH(item.description_override||'')}</textarea></td>
         <td><input type="number" min="1" value="${item.qty}" onchange="updateItem('${sid}','qty',parseInt(this.value)||1)" /></td>
         <td title="Base USD: ${fmt(upUsd, 'USD')} × TC ${tc}">${fmt(effectiveUp, cur)}</td>
         <td><input type="number" min="0" value="${extraMat||''}" onchange="updateItem('${sid}','extra_material',parseFloat(this.value)||0)" style="max-width:70px" placeholder="0" /></td>
@@ -2036,6 +2074,51 @@ function removeManualById(mid) { const idx = manualItems.findIndex(x=>x._id===mi
 // Legacy index-based (kept for compat)
 function updateManual(idx,field,value) { manualItems[idx][field]=value; renderItems(); }
 function removeManual(idx) { const mid = manualItems[idx]?._id; manualItems.splice(idx,1); if(mid) itemOrder = itemOrder.filter(k=>k!==mid); renderItems(); }
+
+// ══════════════════════════════════════════════
+// Auto-fill Encabezado & Descripcion from MobCloud data
+// ══════════════════════════════════════════════
+function autoFillDescriptions() {
+  const obraName = (document.getElementById("fObra").value || "").trim().toUpperCase();
+  let filled = 0;
+  for (const sid of Object.keys(selected)) {
+    const item = selected[sid];
+    if (!item) continue;
+    const desc = item.descripcion || "";
+    let changed = false;
+    // Auto-fill ambiente (Encabezado) if empty
+    if (!item.ambiente) {
+      if (desc.includes(' - ')) {
+        // "LA GUADALUPE - BARBACOA C11" → "BARBACOA C11"
+        const suffix = desc.substring(desc.indexOf(' - ') + 3).trim();
+        if (suffix && suffix !== item.tipo) {
+          item.ambiente = suffix;
+          filled++; changed = true;
+        }
+      } else if (desc && obraName && desc.toUpperCase() !== obraName && desc.toUpperCase().startsWith(obraName)) {
+        // "LA GUADALUPE EXTRA" → "EXTRA"
+        const rest = desc.substring(obraName.length).replace(/^[\s\-]+/, '').trim();
+        if (rest) { item.ambiente = rest; filled++; changed = true; }
+      }
+    }
+    // Auto-fill description_override from descripcion if empty
+    if (!item.description_override && desc) {
+      // Only fill if descripcion has useful content beyond the project name
+      if (desc.toUpperCase() !== obraName && desc.length > 3) {
+        item.description_override = desc;
+        filled++; changed = true;
+      }
+    }
+    if (changed) cacheItemEdits(sid);
+  }
+  if (filled > 0) {
+    renderItems();
+    autoSaveWIP();
+    toast(`${filled} campos auto-llenados desde MobCloud`, "success");
+  } else {
+    toast("No se encontraron datos adicionales de MobCloud para llenar", "info");
+  }
+}
 
 // ══════════════════════════════════════════════
 // Step 3: Conditions
@@ -2775,11 +2858,12 @@ function loadMaterialsList() {
         const price = parseFloat(b.price || b.unitCost || b.unit_price || 0);
         const bQty = parseFloat(b.consumption ?? b.quantity ?? 1);
         if (!materials[key]) {
-          materials[key] = { name, type: "Tablero", apiType: "board", code: String(code), qty: 0, unitPrice: price, unit: "u", _rawRefs: [] };
+          materials[key] = { name, type: "Tablero", apiType: "board", code: String(code), qty: 0, unitPrice: price, unit: "u", mobRecordId: null, _rawRefs: [] };
         }
         materials[key].qty += Math.ceil(bQty) * qty;
         if (price > 0) materials[key].unitPrice = price;
         if (code) materials[key].code = String(code);
+        if (b.id) materials[key].mobRecordId = b.id;
         materials[key]._rawRefs.push({ sid, rawObj: b, costField: "boards_cost_est" });
       });
 
@@ -2792,11 +2876,12 @@ function loadMaterialsList() {
         const price = parseFloat(e.price || e.unitCost || e.unit_price || 0);
         const eQty = parseFloat(e.consumption ?? e.quantity ?? e.meters ?? 1);
         if (!materials[key]) {
-          materials[key] = { name, type: "Tapacanto", apiType: "edge", code: String(code), qty: 0, unitPrice: price, unit: "m", _rawRefs: [] };
+          materials[key] = { name, type: "Tapacanto", apiType: "edge", code: String(code), qty: 0, unitPrice: price, unit: "m", mobRecordId: null, _rawRefs: [] };
         }
         materials[key].qty += eQty * qty;
         if (price > 0) materials[key].unitPrice = price;
         if (code) materials[key].code = String(code);
+        if (e.id) materials[key].mobRecordId = e.id;
         materials[key]._rawRefs.push({ sid, rawObj: e, costField: "edges_cost_est" });
       });
 
@@ -2809,11 +2894,12 @@ function loadMaterialsList() {
         const price = parseFloat(c.price || c.unitCost || c.unit_price || 0);
         const cQty = parseFloat(c.quantity ?? c.qty ?? 1);
         if (!materials[key]) {
-          materials[key] = { name, type: "Herraje", apiType: "component", code: String(code), qty: 0, unitPrice: price, unit: "u", _rawRefs: [] };
+          materials[key] = { name, type: "Herraje", apiType: "component", code: String(code), qty: 0, unitPrice: price, unit: "u", mobRecordId: null, _rawRefs: [] };
         }
         materials[key].qty += cQty * qty;
         if (price > 0) materials[key].unitPrice = price;
         if (code) materials[key].code = String(code);
+        if (c.id) materials[key].mobRecordId = c.id;
         materials[key]._rawRefs.push({ sid, rawObj: c, costField: "components_cost_est" });
       });
 
@@ -3043,11 +3129,13 @@ async function saveMaterialPriceMobCloud(idx) {
 
   try {
     toast("Actualizando en MobCloud...", "info");
-    const result = await invokeFunction("mobcloud-material-update", {
+    const payload = {
       material_type: mat.apiType,
       internal_code: mat.code,
       price: newPrice,
-    });
+    };
+    if (mat.mobRecordId) payload.record_id = mat.mobRecordId;
+    const result = await invokeFunction("mobcloud-material-update", payload);
 
     if (result.success) {
       const oldPrice = mat.unitPrice;
@@ -3765,6 +3853,10 @@ setTimeout(async () => {
     }
   }
 }, 500);
+function crearLicitacion(quoteId, nombre) {
+  if (!confirm(`¿Crear licitación para "${nombre}"?\n\nSe abrirá Licitaciones con los items pre-cargados.`)) return;
+  window.open(`licitaciones.html?action=crear_desde_quote&quote_id=${quoteId}`, '_blank');
+}
 </script>
 </body>
 </html>

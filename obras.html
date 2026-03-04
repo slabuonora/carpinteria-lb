@@ -125,6 +125,20 @@
     html.dark .prioridad-alta { background: #433814; color: #f5cb5c; }
     html.dark .prioridad-urgente { background: #3d1c1c; color: #f87171; }
 
+    /* ── Obra card context menu ── */
+    .obra-card-actions { position: absolute; top: 6px; right: 6px; opacity: 0; transition: opacity 0.15s; }
+    .obra-card { position: relative; }
+    .obra-card:hover .obra-card-actions { opacity: 1; }
+    .obra-ctx-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; font-size: 14px; cursor: pointer; line-height: 1; color: var(--text-3); }
+    .obra-ctx-btn:hover { background: var(--bg); color: var(--text); }
+    .obra-ctx-menu { position: absolute; top: 100%; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 60; min-width: 160px; padding: 4px; display: none; }
+    .obra-ctx-menu.open { display: block; }
+    .obra-ctx-menu button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 12px; font-size: 12.5px; font-family: inherit; border: none; background: transparent; color: var(--text); cursor: pointer; border-radius: 6px; }
+    .obra-ctx-menu button:hover { background: var(--bg); }
+    .obra-ctx-menu button.danger { color: var(--danger); }
+    .obra-ctx-menu button.danger:hover { background: #fef2f2; }
+    html.dark .obra-ctx-menu button.danger:hover { background: #3d1c1c; }
+
     /* ── Checklist mini ── */
     .checklist-mini { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
     .checklist-mini .check-icon { color: var(--success); }
@@ -228,6 +242,163 @@
     html.dark .status-entregada { background: #2a2d33; }
     html.dark .status-cancelada { background: #2a2d33; }
 
+    /* ── Tareas panel ── */
+    .tareas-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .tareas-toolbar select, .tareas-toolbar input { width: auto; min-width: 120px; font-size: 12px; padding: 6px 8px; }
+    .tareas-stats { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .tarea-stat { padding: 8px 14px; border-radius: 6px; background: var(--bg); font-size: 12px; text-align: center; }
+    .tarea-stat .ts-val { font-size: 18px; font-weight: 700; font-family: var(--mono); display: block; }
+    .tarea-stat .ts-lbl { font-size: 10px; color: var(--text-3); text-transform: uppercase; }
+    .tarea-unidad-group { margin-bottom: 18px; }
+    .tarea-unidad-header { font-size: 14px; font-weight: 600; color: var(--text); padding: 8px 12px; background: var(--bg); border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .tarea-unidad-header:hover { background: var(--accent-light); }
+    .tarea-unidad-header .tu-badge { font-size: 11px; font-family: var(--mono); color: var(--text-3); }
+    .tarea-ambiente-group { margin-left: 12px; margin-bottom: 10px; }
+    .tarea-ambiente-title { font-size: 12px; font-weight: 600; color: var(--text-2); padding: 4px 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .tarea-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 4px; font-size: 12.5px; transition: all 0.15s; cursor: pointer; }
+    .tarea-row:hover { border-color: var(--accent); background: var(--accent-light); }
+    .tarea-row.tarea-completada { opacity: 0.6; }
+    .tarea-row .tr-tipo { font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tarea-row .tr-desc { font-size: 11px; color: var(--text-3); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tarea-estado { font-size: 10px; padding: 2px 8px; border-radius: 8px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+    .te-pendiente { background: #f3f4f6; color: var(--text-3); }
+    .te-material_en_unidad { background: #fef3d1; color: #856404; }
+    .te-en_progreso { background: var(--accent-light); color: var(--accent); }
+    .te-completada { background: #e3f5ea; color: var(--success); }
+    .te-bloqueada { background: #fde8e8; color: var(--danger); }
+    .te-observada { background: #fef3d1; color: var(--warn); }
+    html.dark .te-pendiente { background: #2a2d33; }
+    html.dark .te-material_en_unidad { background: #433814; color: #f5cb5c; }
+    html.dark .te-bloqueada { background: #3d1c1c; }
+    html.dark .te-observada { background: #433814; }
+    .tarea-operarios { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+    .tarea-operarios .to-avatar { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: white; background: var(--accent); flex-shrink: 0; border: 2px solid var(--card-bg); margin-left: -6px; }
+    .tarea-operarios .to-avatar:first-child { margin-left: 0; }
+    .tarea-operarios .to-more { font-size: 10px; color: var(--text-3); margin-left: 2px; }
+    .tarea-operarios .to-empty { font-size: 11px; color: var(--text-3); white-space: nowrap; }
+    .ops-container { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .op-chip { display: inline-flex; align-items: center; gap: 3px; background: var(--accent-light); color: var(--accent); border-radius: 12px; padding: 2px 6px 2px 8px; font-size: 11px; font-weight: 600; }
+    .op-chip-x { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; }
+    .op-chip-x:hover { color: var(--danger); }
+    .op-add-select { font-size: 11px; padding: 2px 6px; border-radius: 12px; border: 1px dashed var(--border); background: var(--bg); min-width: 100px; cursor: pointer; }
+    .bulk-assign-bar { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+    .bulk-assign-bar button { font-size: 10px; padding: 3px 8px; }
+    .tarea-detail-panel { padding: 12px; background: var(--bg); border-radius: 8px; margin-top: 8px; font-size: 12.5px; }
+    .tarea-detail-panel .form-row { margin-bottom: 10px; }
+    .tarea-progress-mini { width: 40px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+    .tarea-progress-mini .tp-fill { height: 100%; border-radius: 2px; }
+    /* Tareas tab */
+    .tareas-filter-bar { display: flex; gap: 8px; padding: 8px 0; flex-wrap: wrap; align-items: center; }
+    .tareas-filter-bar select { font-size: 12px; padding: 5px 8px; border-radius: 6px; }
+    /* Nivel grouping (top level) */
+    .tareas-nivel-group { margin-bottom: 10px; }
+    .tareas-nivel-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--accent-light); border: 1px solid var(--accent); border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; user-select: none; margin-bottom: 6px; }
+    .tareas-nivel-header:hover { background: var(--accent); color: white; }
+    .tareas-nivel-body { padding-left: 8px; }
+    .tareas-nivel-body .tareas-group { border-left: 2px solid var(--accent-light); margin-left: 4px; }
+    /* Unidad grouping (second level) */
+    .tareas-group { margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .tareas-group-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg); cursor: pointer; font-size: 13px; user-select: none; }
+    .tareas-group-header:hover { background: var(--accent-light); }
+    .tareas-group-body { padding: 4px 8px 8px; }
+    .tareas-amb-header { font-size: 12px; font-weight: 600; padding: 6px 4px 2px; color: var(--text-2); border-bottom: 1px solid var(--border); margin-top: 4px; }
+    .tareas-amb-header:first-child { margin-top: 0; }
+    .unit-picker-overlay { margin-top: 8px; padding: 10px; background: var(--card-bg); border: 1px solid var(--accent); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+    .tt-bulk-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--accent-light); border: 1px solid var(--accent); border-radius: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .tt-bulk-bar .bulk-count { font-size: 12px; font-weight: 700; color: var(--accent); }
+    .tt-bulk-bar select { font-size: 12px; padding: 4px 8px; border-radius: 6px; }
+    .tt-bulk-bar .bulk-sep { width: 1px; height: 20px; background: var(--border); }
+    .tt-check { width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; accent-color: var(--accent); }
+    .unidades-form { padding: 14px; background: var(--bg); border-radius: 8px; margin-top: 12px; }
+    .unidades-form .uf-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .unidades-form input { width: auto; flex: 1; }
+
+    /* ── Building Map (Mapa Edificio) ── */
+    .bmap-container { margin-top: 8px; }
+    .bmap-toggle { display: inline-flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-right: 12px; }
+    .bmap-toggle button { padding: 5px 14px; font-size: 12px; font-family: inherit; font-weight: 500; border: none; background: var(--surface); color: var(--text-3); cursor: pointer; }
+    .bmap-toggle button.active { background: var(--accent); color: white; }
+    .bmap-building { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 20px 0; }
+    .bmap-row { display: flex; align-items: center; gap: 0; }
+    .bmap-label { width: 70px; text-align: right; padding-right: 10px; font-size: 11px; font-weight: 600; color: var(--text-3); font-family: var(--mono); white-space: nowrap; flex-shrink: 0; }
+    .bmap-cells { display: flex; gap: 2px; }
+    .bmap-cell { width: 60px; height: 32px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; font-family: var(--mono); color: white; transition: transform 0.1s, box-shadow 0.1s; position: relative; border: 2px solid transparent; }
+    .bmap-cell:hover { transform: scale(1.15); box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 2; }
+    .bmap-cell.selected { border-color: var(--text); }
+    .bmap-legend { display: flex; gap: 16px; justify-content: center; padding: 12px; font-size: 11px; color: var(--text-2); flex-wrap: wrap; }
+    .bmap-legend-item { display: flex; align-items: center; gap: 4px; }
+    .bmap-legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+    .bmap-detail { margin-top: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+    .bmap-detail-header { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .bmap-detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+    .bmap-amb-card { padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; }
+    .bmap-amb-card .amb-name { font-weight: 600; margin-bottom: 4px; }
+    .bmap-amb-card .amb-stat { font-size: 11px; color: var(--text-3); }
+
+    /* ── Cronograma ── */
+    .crono-alerts { margin-bottom: 12px; }
+    .crono-alert { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 4px; }
+    .crono-alert.warn { background: #fef3d1; color: #856404; border: 1px solid #f5cb5c; }
+    .crono-alert.danger { background: #fde8e8; color: #721c24; border: 1px solid #f87171; }
+    html.dark .crono-alert.warn { background: #433814; color: #f5cb5c; border-color: #665520; }
+    html.dark .crono-alert.danger { background: #3d1c1c; color: #f87171; border-color: #662828; }
+    .crono-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; }
+    .crono-table th { text-align: left; padding: 8px 10px; background: var(--bg); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-3); border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 1; }
+    .crono-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .crono-table tr:hover td { background: var(--accent-light); }
+    .crono-table input[type="date"] { font-size: 11.5px; padding: 3px 5px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 120px; font-family: var(--mono); }
+    .crono-table input[type="date"]:focus { border-color: var(--accent); outline: none; }
+    .crono-estado { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .crono-estado.finalizado { background: #e3f5ea; color: var(--success); }
+    .crono-estado.en_ejecucion { background: var(--accent-light); color: var(--accent); }
+    .crono-estado.con_observaciones { background: #fef3d1; color: #856404; }
+    .crono-estado.material_recibido { background: #fef3d1; color: #856404; }
+    .crono-estado.pendiente { background: var(--bg); color: var(--text-3); }
+    .crono-estado.sin_tareas { background: var(--bg); color: var(--text-3); font-style: italic; }
+    html.dark .crono-estado.finalizado { background: #1a3328; color: #3bb06a; }
+    html.dark .crono-estado.con_observaciones { background: #433814; color: #f5cb5c; }
+    html.dark .crono-estado.material_recibido { background: #433814; color: #f5cb5c; }
+    .crono-retraso { font-size: 11px; font-weight: 600; font-family: var(--mono); }
+    .crono-retraso.ok { color: var(--success); }
+    .crono-retraso.warn { color: var(--warn); }
+    .crono-retraso.danger { color: var(--danger); }
+    .crono-gantt { position: relative; height: 14px; background: var(--bg); border-radius: 3px; overflow: hidden; min-width: 100px; }
+    .crono-gantt-bar { position: absolute; height: 100%; border-radius: 3px; top: 0; }
+    .crono-gantt-plan { background: var(--border); opacity: 0.5; }
+    .crono-gantt-real { background: var(--accent); }
+    .crono-gantt-today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--danger); z-index: 1; }
+    .crono-summary { display: flex; gap: 16px; padding: 12px 0; flex-wrap: wrap; }
+    .crono-summary-item { text-align: center; }
+    .crono-summary-val { font-size: 20px; font-weight: 700; font-family: var(--mono); }
+    .crono-summary-lbl { font-size: 10px; color: var(--text-3); text-transform: uppercase; }
+    .crono-notas { font-size: 11px; padding: 2px 6px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--text-2); width: 100%; font-family: inherit; }
+    .crono-notas:focus { border-color: var(--accent); background: var(--surface); outline: none; }
+
+    /* ── Config Obra tab ── */
+    .cfg-header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .cfg-header select { width: 280px; }
+    .cfg-header .cfg-tipo { display: flex; gap: 2px; background: var(--bg); border-radius: 8px; padding: 3px; }
+    .cfg-header .cfg-tipo button { padding: 6px 14px; font-size: 12px; font-weight: 500; font-family: inherit; border: none; background: transparent; color: var(--text-3); cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .cfg-header .cfg-tipo button.active { background: var(--accent); color: white; font-weight: 600; }
+    .cfg-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+    .cfg-section h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .cfg-section h4 .cfg-badge { font-size: 11px; font-family: var(--mono); color: var(--text-3); font-weight: 400; }
+    .nivel-row { display: grid; grid-template-columns: 140px 100px 1fr 36px; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .nivel-row input { font-size: 12px; padding: 6px 8px; }
+    .nivel-preview { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; padding: 10px; background: var(--bg); border-radius: 6px; }
+    .nivel-preview .np-unit { font-size: 10px; font-family: var(--mono); padding: 2px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+    .nivel-preview .np-unit.has-tareas { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+    .plantilla-table { width: 100%; font-size: 12.5px; }
+    .plantilla-table th { font-size: 11px; text-align: left; padding: 6px 8px; color: var(--text-3); border-bottom: 1px solid var(--border); }
+    .plantilla-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    .plantilla-table td input { font-size: 12px; padding: 4px 6px; width: 100%; border: 1px solid transparent; background: transparent; color: var(--text); }
+    .plantilla-table td input:focus { border-color: var(--accent); background: var(--surface); border-radius: 4px; }
+    .gen-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; margin-bottom: 4px; font-size: 12.5px; }
+    .gen-row:hover { background: var(--bg); }
+    .gen-row label { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; margin-bottom: 0; font-size: 12.5px; font-weight: 400; color: var(--text); }
+    .gen-row .gen-count { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+    .gen-summary { padding: 12px; background: var(--accent-light); border-radius: 6px; margin-top: 12px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
+
     /* ── Responsive ── */
     @media (max-width: 1100px) {
       .kanban { grid-template-columns: repeat(2, 1fr); }
@@ -253,12 +424,13 @@
   <nav class="nav-tabs">
     <button class="nav-tab active" onclick="switchTab('kanban')" id="tab-kanban">Kanban</button>
     <button class="nav-tab" onclick="switchTab('lista')" id="tab-lista">Lista</button>
+    <button class="nav-tab" onclick="switchTab('tareas')" id="tab-tareas">Tareas</button>
+    <button class="nav-tab" onclick="switchTab('obra')" id="tab-obra">Obra</button>
     <button class="nav-tab" onclick="switchTab('metricas')" id="tab-metricas">Métricas</button>
   </nav>
   <div class="header-actions">
-    <a href="comercial.html" class="btn btn-secondary btn-sm" style="text-decoration:none">← Comercial</a>
-    <a href="produccion.html" class="btn btn-secondary btn-sm" style="text-decoration:none">Producción →</a>
     <button class="btn btn-primary btn-sm" onclick="showNuevaObra()">+ Nueva obra</button>
+    <a href="index.html" class="btn btn-sm btn-secondary" style="text-decoration:none">← Inicio</a>
     <button class="dark-toggle" onclick="toggleDark()" title="Modo oscuro/claro">◐</button>
   </div>
 </header>
@@ -303,6 +475,14 @@
 
   <!-- ═══ TAB: LISTA ═══ -->
   <div class="tab-panel" id="panel-lista">
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+      <label style="margin:0;font-size:12px">Mostrar:</label>
+      <select id="listaFiltroEstado" onchange="renderLista()" style="font-size:12px;padding:4px 8px;border-radius:6px;width:auto">
+        <option value="activas">Activas (kanban)</option>
+        <option value="archivadas">Archivadas</option>
+        <option value="todas">Todas</option>
+      </select>
+    </div>
     <div style="overflow-x:auto">
       <table id="obrasTable">
         <thead>
@@ -316,11 +496,49 @@
             <th>Checklist</th>
             <th onclick="sortList('fecha_inicio_estimada')">Inicio est.</th>
             <th onclick="sortList('horas_reales')">Horas</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="obrasTableBody"></tbody>
       </table>
       <div class="empty" id="listaEmpty" style="display:none">No hay obras registradas</div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: TAREAS ═══ -->
+  <div class="tab-panel" id="panel-tareas">
+    <div class="cfg-header">
+      <select id="tareasObraSelect" onchange="loadTareasTab(this.value)">
+        <option value="">— Seleccioná una obra —</option>
+      </select>
+      <div class="bmap-toggle" id="tareasViewToggle" style="display:none">
+        <button class="active" onclick="setTareasView('lista')">Lista</button>
+        <button onclick="setTareasView('mapa')">Mapa</button>
+        <button onclick="setTareasView('cronograma')">Cronograma</button>
+      </div>
+      <span id="tareasObraInfo" style="font-size:12px;color:var(--text-3)"></span>
+    </div>
+    <div id="tareasTabContent">
+      <div class="empty">Seleccioná una obra para gestionar sus tareas</div>
+    </div>
+    <div id="tareasMapContent" style="display:none"></div>
+    <div id="cronogramaContent" style="display:none"></div>
+  </div>
+
+  <!-- ═══ TAB: OBRA (configuración) ═══ -->
+  <div class="tab-panel" id="panel-obra">
+    <div class="cfg-header">
+      <select id="cfgObraSelect" onchange="loadObraConfig(this.value)">
+        <option value="">— Seleccioná una obra —</option>
+      </select>
+      <div class="cfg-tipo" id="cfgTipoWrap" style="display:none">
+        <button onclick="setTipoObra('casa')" id="cfgTipoCasa">Casa</button>
+        <button onclick="setTipoObra('edificio')" id="cfgTipoEdificio">Edificio</button>
+      </div>
+      <span id="cfgObraInfo" style="font-size:12px;color:var(--text-3)"></span>
+    </div>
+    <div id="cfgContent">
+      <div class="empty">Seleccioná una obra para configurar su estructura y tareas</div>
     </div>
   </div>
 
@@ -423,20 +641,62 @@ async function sbMutate(table, method, body, params="") {
     "Content-Type": "application/json",
     "Prefer": method === "POST" ? "return=representation" : "return=minimal"
   };
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
-    method, headers, body: JSON.stringify(body)
-  });
+  const opts = { method, headers };
+  if (body !== null && body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, opts);
   if (!r.ok) { const err = await r.text(); throw new Error(err); }
   return method === "POST" ? r.json() : true;
+}
+
+// ── Edge function helper ──
+async function invokeFunction(fn, body) {
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/${fn}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON}`, 'apikey': SUPABASE_ANON },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) { const t = await r.text(); throw new Error(t); }
+  return r.json();
 }
 
 // ═══════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════
 let obrasData = [];
+let tareasResumenMap = {};
 let sortField = 'numero';
 let sortDir = 'desc';
 let quotesForSelect = [];
+let empleadosCache = [];
+
+// Config Obra tab state
+let cfgObra = null;             // obra seleccionada para config
+let cfgTipo = 'casa';           // casa | edificio
+let cfgNiveles = [];            // [{ nombre:'N2-N3', unidades:['01','02',...] }]
+let cfgPlantillas = {};         // { "TPL:2amb": [tarea,...], "TPL:3amb": [...] }
+let cfgActivePlantilla = null;  // current selected plantilla key
+let cfgAsignaciones = {};       // { "0": { "01": "TPL:2amb", "02": "TPL:3amb" }, ... } per nivel group
+let cfgExistingUnits = [];      // unidades que ya tienen tareas generadas
+
+// Tareas tab state
+let tareasTabData = { obraId: null, obra: null, tareas: [], grouped: {} };
+let tareasTabFilters = { nivel: '', unidad: '', tipologia: '', estado: '', operario: '' };
+let tareasTabCollapsed = new Set();
+let tareasTabExpandedTarea = null;
+let tareasTabSelected = new Set();
+let tareasTabVisibleIds = [];
+let tareasContext = 'modal';    // 'modal' or 'tab' — controls which data/reload to use
+let tareasTabView = 'lista';   // 'lista' or 'mapa'
+let bmapSelectedUnit = null;   // selected unit in building map
+let bmapAmbienteFilter = '';   // filter map by ambiente (Cocina, Puertas, etc.)
+
+function getCurrentTareasData() {
+  return tareasContext === 'tab' ? tareasTabData : currentObraTareas;
+}
+function reloadCurrentTareas() {
+  if (tareasContext === 'tab') return loadTareasTab(tareasTabData.obraId);
+  return loadDetalleTareas(currentObraTareas.obraId, currentObraTareas.obra);
+}
 
 // ═══════════════════════════════════════════════════════════════
 // DARK MODE
@@ -455,6 +715,8 @@ function switchTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById(`panel-${tab}`).classList.add('active');
   document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'obra') populateCfgObraSelect();
+  if (tab === 'tareas') populateTareasObraSelect();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -504,23 +766,33 @@ const KANBAN_COLS = ['por_preparar','en_curso','terminada','entregada'];
 const ESTADO_LABELS = {
   por_preparar: 'Por preparar', en_curso: 'En curso',
   terminada: 'Terminada', entregada: 'Entregada',
-  garantia: 'Garantía', cancelada: 'Cancelada'
+  garantia: 'Garantía', cancelada: 'Cancelada',
+  archivada: 'Archivada'
 };
 
 async function loadKanban() {
   try {
     obrasData = await sbQuery('v_obra_kanban', 'select=*&order=prioridad.desc,updated_at.desc');
 
-    // Enriquecer con último reporte WhatsApp por obra
+    // Enriquecer con último reporte WhatsApp y tareas resumen
     try {
-      const waLast = await sbQuery('whatsapp_messages_log',
-        'direction=eq.inbound&select=obra_id,created_at&order=created_at.desc');
+      const [waLast, tareasRes] = await Promise.all([
+        sbQuery('whatsapp_messages_log', 'direction=eq.inbound&select=obra_id,created_at&order=created_at.desc').catch(() => []),
+        sbQuery('v_obra_tareas_resumen', 'select=*').catch(() => [])
+      ]);
       const waMap = {};
       for (const m of (waLast || [])) {
         if (m.obra_id && !waMap[m.obra_id]) waMap[m.obra_id] = m.created_at;
       }
-      obrasData.forEach(o => { o.ultimo_wa = waMap[o.id] || null; });
-    } catch(e) { console.warn('WA enrich error:', e); }
+      tareasResumenMap = {};
+      for (const t of (tareasRes || [])) {
+        tareasResumenMap[t.obra_id] = t;
+      }
+      obrasData.forEach(o => {
+        o.ultimo_wa = waMap[o.id] || null;
+        o.tareas_resumen = tareasResumenMap[o.id] || null;
+      });
+    } catch(e) { console.warn('Enrich error:', e); }
 
     KANBAN_COLS.forEach(estado => {
       const container = document.getElementById(`cards-${estado}`);
@@ -548,6 +820,13 @@ function renderCard(o) {
     ondragstart="onDragStart(event, '${o.id}')"
     ondragend="onDragEnd(event)"
     onclick="openDetalle('${o.id}')">
+    <div class="obra-card-actions">
+      <button class="obra-ctx-btn" onclick="event.stopPropagation();toggleObraMenu(this)" title="Acciones">⋮</button>
+      <div class="obra-ctx-menu" id="ctx-${o.id}">
+        <button onclick="event.stopPropagation();archivarObra('${o.id}')">📦 Archivar</button>
+        <button class="danger" onclick="event.stopPropagation();eliminarObra('${o.id}')">🗑 Eliminar</button>
+      </div>
+    </div>
     <div class="obra-header">
       <div>
         <div class="obra-name">${esc(o.nombre)}</div>
@@ -573,6 +852,11 @@ function renderCard(o) {
         ${o.horas_reales > 0 ? `<span>${o.horas_reales}h</span>` : ''}
       </div>
     </div>
+    ${o.tareas_resumen ? `<div style="margin-top:6px;font-size:11px;color:var(--text-3);display:flex;align-items:center;gap:6px">
+      <div class="tarea-progress-mini"><div class="tp-fill" style="width:${o.tareas_resumen.progreso_promedio}%;background:${o.tareas_resumen.progreso_promedio >= 80 ? 'var(--success)' : 'var(--accent)'}"></div></div>
+      <span>Tareas ${o.tareas_resumen.tareas_completadas}/${o.tareas_resumen.total_tareas}</span>
+      ${o.tareas_resumen.tareas_bloqueadas > 0 ? '<span style="color:var(--danger)">⚠</span>' : ''}
+    </div>` : ''}
     ${o.ultimo_wa ? `<div class="wa-indicator"><span class="wa-dot${isWaStale(o.ultimo_wa) ? ' stale' : ''}"></span>📱 ${timeAgo(o.ultimo_wa)}</div>` : ''}
   </div>`;
 }
@@ -647,11 +931,108 @@ async function onDrop(e) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// ARCHIVAR / ELIMINAR OBRA
+// ═══════════════════════════════════════════════════════════════
+function toggleObraMenu(btn) {
+  const menu = btn.nextElementSibling;
+  // Close any other open menus
+  document.querySelectorAll('.obra-ctx-menu.open').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+  menu.classList.toggle('open');
+}
+
+// Close context menus on outside click
+document.addEventListener('click', () => {
+  document.querySelectorAll('.obra-ctx-menu.open').forEach(m => m.classList.remove('open'));
+});
+
+async function archivarObra(obraId) {
+  const obra = obrasData.find(o => o.id === obraId);
+  const nombre = obra ? obra.nombre : '';
+  if (!confirm(`¿Archivar la obra "${nombre}"?\n\nLa obra dejará de verse en el kanban pero se puede recuperar.`)) return;
+  try {
+    showLoading();
+    await sbMutate('obras', 'PATCH', { estado: 'archivada' }, `id=eq.${obraId}`);
+    await sbMutate('obra_eventos', 'POST', [{
+      obra_id: obraId,
+      tipo: 'estado_cambio',
+      descripcion: `${ESTADO_LABELS[obra?.estado] || '?'} → Archivada`,
+      metadata: { anterior: obra?.estado, nuevo: 'archivada' }
+    }]);
+    closeModal('modalDetalle');
+    toast('Obra archivada', 'success');
+    await loadKanban();
+    await loadMetrics();
+    renderLista();
+  } catch(e) {
+    console.error('Archivar error:', e);
+    toast('Error al archivar: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function eliminarObra(obraId) {
+  const obra = obrasData.find(o => o.id === obraId);
+  const nombre = obra ? obra.nombre : '';
+  if (!confirm(`¿ELIMINAR la obra "${nombre}"?\n\n⚠️ Esta acción NO se puede deshacer.\nSe eliminarán todas las tareas, eventos, checklist y fotos asociadas.`)) return;
+  if (!confirm(`¿Estás SEGURO?\n\nObra: ${nombre}`)) return;
+  try {
+    showLoading();
+    // Clean up related tables that may not CASCADE, ignore errors
+    await sbMutate('obra_eventos', 'DELETE', null, `obra_id=eq.${obraId}`).catch(() => {});
+    await sbMutate('obra_checklist', 'DELETE', null, `obra_id=eq.${obraId}`).catch(() => {});
+    // Unlink whatsapp messages (FK without CASCADE)
+    await sbMutate('whatsapp_messages_log', 'PATCH', { obra_id: null }, `obra_id=eq.${obraId}`).catch(() => {});
+    // obra_tareas CASCADE from obras, obra_tarea_operarios CASCADE from obra_tareas
+    await sbMutate('obras', 'DELETE', null, `id=eq.${obraId}`);
+    closeModal('modalDetalle');
+    toast('Obra eliminada', 'success');
+    await loadKanban();
+    await loadMetrics();
+    renderLista();
+  } catch(e) {
+    console.error('Eliminar error:', e);
+    toast('Error al eliminar: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function desarchivarObra(obraId) {
+  try {
+    showLoading();
+    await sbMutate('obras', 'PATCH', { estado: 'por_preparar' }, `id=eq.${obraId}`);
+    await sbMutate('obra_eventos', 'POST', [{
+      obra_id: obraId,
+      tipo: 'estado_cambio',
+      descripcion: 'Archivada → Por preparar (restaurada)',
+      metadata: { anterior: 'archivada', nuevo: 'por_preparar' }
+    }]);
+    toast('Obra restaurada', 'success');
+    await loadKanban();
+    await loadMetrics();
+    renderLista();
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // LISTA
 // ═══════════════════════════════════════════════════════════════
 function renderLista() {
   const tbody = document.getElementById('obrasTableBody');
-  const sorted = [...obrasData].sort((a, b) => {
+  const filtro = document.getElementById('listaFiltroEstado')?.value || 'activas';
+  const kanbanEstados = new Set(KANBAN_COLS);
+
+  let data = obrasData;
+  if (filtro === 'activas') data = data.filter(o => kanbanEstados.has(o.estado));
+  else if (filtro === 'archivadas') data = data.filter(o => o.estado === 'archivada');
+  // 'todas' = no filter
+
+  const sorted = [...data].sort((a, b) => {
     let va = a[sortField], vb = b[sortField];
     if (va == null) va = '';
     if (vb == null) vb = '';
@@ -665,13 +1046,15 @@ function renderLista() {
   if (sorted.length === 0) {
     tbody.innerHTML = '';
     document.getElementById('listaEmpty').style.display = '';
+    document.getElementById('listaEmpty').textContent = filtro === 'archivadas' ? 'No hay obras archivadas' : 'No hay obras registradas';
     return;
   }
   document.getElementById('listaEmpty').style.display = 'none';
 
   tbody.innerHTML = sorted.map(o => {
     const checkPct = o.checklist_total > 0 ? Math.round(o.checklist_completados / o.checklist_total * 100) : 0;
-    return `<tr onclick="openDetalle('${o.id}')" style="cursor:pointer">
+    const isArchivada = o.estado === 'archivada';
+    return `<tr onclick="openDetalle('${o.id}')" style="cursor:pointer${isArchivada ? ';opacity:0.65' : ''}">
       <td class="mono" style="font-size:12px">${o.numero}</td>
       <td><strong>${esc(o.nombre)}</strong></td>
       <td>${esc(o.cliente_nombre || '—')}</td>
@@ -688,6 +1071,12 @@ function renderLista() {
       <td><span class="mono" style="font-size:11px">${o.checklist_completados}/${o.checklist_total} (${checkPct}%)</span></td>
       <td style="font-size:12px">${o.fecha_inicio_estimada || '—'}</td>
       <td class="mono" style="font-size:12px">${o.horas_reales > 0 ? o.horas_reales + 'h' : '—'}</td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        ${isArchivada
+          ? `<button class="btn btn-sm btn-primary" onclick="desarchivarObra('${o.id}')">Restaurar</button>
+             <button class="btn btn-sm btn-danger" onclick="eliminarObra('${o.id}')">Eliminar</button>`
+          : `<button class="btn btn-sm btn-secondary" onclick="archivarObra('${o.id}')">Archivar</button>`}
+      </td>
     </tr>`;
   }).join('');
 }
@@ -752,7 +1141,10 @@ function renderWaTimeline(msgs) {
 async function openDetalle(id) {
   const obra = obrasData.find(o => o.id === id);
   if (!obra) return;
-  document.getElementById('detalleTitle').innerHTML = `🏗️ ${esc(obra.nombre)} <span class="mono" style="font-size:12px;color:var(--text-3)">#OBR-${obra.numero}</span><button class="modal-close" onclick="closeModal('modalDetalle')">&times;</button>`;
+  const isArchivada = obra.estado === 'archivada';
+  document.getElementById('detalleTitle').innerHTML = `🏗️ ${esc(obra.nombre)} <span class="mono" style="font-size:12px;color:var(--text-3)">#OBR-${obra.numero}</span><button class="btn btn-secondary btn-sm" style="margin-left:12px" onclick="closeModal('modalDetalle');openObraConfig('${id}')">Configurar</button><button class="btn btn-secondary btn-sm" style="margin-left:6px" onclick="closeModal('modalDetalle');openTareasTab('${id}')">Tareas</button>${isArchivada
+    ? `<button class="btn btn-success btn-sm" style="margin-left:6px" onclick="desarchivarObra('${id}');closeModal('modalDetalle')">Restaurar</button>`
+    : `<button class="btn btn-secondary btn-sm" style="margin-left:6px" onclick="archivarObra('${id}')">📦 Archivar</button>`}<button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarObra('${id}')">🗑 Eliminar</button><button class="modal-close" onclick="closeModal('modalDetalle')">&times;</button>`;
 
   const equipo = typeof obra.equipo === 'string' ? JSON.parse(obra.equipo) : (obra.equipo || []);
   const checkPct = obra.checklist_total > 0 ? Math.round(obra.checklist_completados / obra.checklist_total * 100) : 0;
@@ -760,6 +1152,7 @@ async function openDetalle(id) {
   document.getElementById('detalleContent').innerHTML = `
     <div class="detalle-tabs">
       <button class="detalle-tab active" onclick="switchDetalleTab('info')">Info</button>
+      <button class="detalle-tab" onclick="switchDetalleTab('tareas')" id="dtab-tareas">Tareas</button>
       <button class="detalle-tab" onclick="switchDetalleTab('eventos')">Eventos</button>
       <button class="detalle-tab" onclick="switchDetalleTab('checklist')">Checklist</button>
       <button class="detalle-tab" onclick="switchDetalleTab('fotos')">Fotos</button>
@@ -784,9 +1177,13 @@ async function openDetalle(id) {
         <div class="info-item"><label>Días en obra</label><div class="info-val mono">${obra.dias_en_obra || 0}</div></div>
         <div class="info-item"><label>Inicio estimado</label><div class="info-val">${obra.fecha_inicio_estimada || '—'}</div></div>
         <div class="info-item"><label>Inicio real</label><div class="info-val">${obra.fecha_inicio_real || '—'}</div></div>
-        ${obra.monto_quote ? `<div class="info-item"><label>Monto quote</label><div class="info-val mono">${obra.moneda || '$'} ${Number(obra.monto_quote).toLocaleString()}</div></div>` : ''}
+        ${obra.monto_quote ? `<div class="info-item"><label>Monto quote</label><div class="info-val mono">${obra.moneda || 'USD'} ${Number(obra.monto_quote).toLocaleString()}</div></div>` : ''}
       </div>
       ${obra.notas ? `<div style="margin-top:12px;padding:10px 12px;background:var(--bg);border-radius:6px;font-size:12.5px;color:var(--text-2)"><strong>Notas:</strong> ${esc(obra.notas)}</div>` : ''}
+    </div>
+
+    <div class="detalle-panel" id="dp-tareas">
+      <div id="tareasContainer"><div style="padding:12px;text-align:center"><div class="spinner"></div></div></div>
     </div>
 
     <div class="detalle-panel" id="dp-eventos">
@@ -818,6 +1215,7 @@ async function openDetalle(id) {
   openModal('modalDetalle');
 
   // Cargar datos async en paralelo
+  loadDetalleTareas(id, obra);
   loadDetalleEventos(id);
   loadDetalleChecklist(id);
   loadDetalleFotos(id);
@@ -942,6 +1340,1942 @@ async function loadDetalleEquipoHoras(obraId, equipo) {
       </div>`;
     }).join('');
   } catch(err) { /* keep original equipo render */ }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAREAS TAB (full-width editing)
+// ═══════════════════════════════════════════════════════════════
+
+async function populateTareasObraSelect() {
+  const sel = document.getElementById('tareasObraSelect');
+  const current = sel.value;
+  try {
+    const obras = await sbQuery('obras', 'select=id,nombre,numero,estado&order=numero.desc');
+    sel.innerHTML = '<option value="">— Seleccioná una obra —</option>' +
+      obras.map(o => `<option value="${o.id}">${esc(o.nombre)} (#${o.numero})</option>`).join('');
+    if (current) sel.value = current;
+  } catch(e) { console.error('Load obras for tareas tab:', e); }
+}
+
+async function openTareasTab(obraId) {
+  switchTab('tareas');
+  await populateTareasObraSelect();
+  document.getElementById('tareasObraSelect').value = obraId;
+  loadTareasTab(obraId);
+}
+
+async function loadTareasTab(obraId) {
+  const content = document.getElementById('tareasTabContent');
+  if (!obraId) {
+    tareasTabData = { obraId: null, obra: null, tareas: [], grouped: {} };
+    content.innerHTML = '<div class="empty">Seleccioná una obra para gestionar sus tareas</div>';
+    document.getElementById('tareasMapContent').innerHTML = '';
+    document.getElementById('tareasMapContent').style.display = 'none';
+    document.getElementById('cronogramaContent').innerHTML = '';
+    document.getElementById('cronogramaContent').style.display = 'none';
+    content.style.display = '';
+    document.getElementById('tareasViewToggle').style.display = 'none';
+    document.getElementById('tareasObraInfo').textContent = '';
+    bmapSelectedUnit = null;
+    return;
+  }
+  content.innerHTML = '<div style="padding:24px;text-align:center"><div class="spinner"></div></div>';
+  try {
+    const [obra] = await sbQuery('obras', `id=eq.${obraId}&select=id,nombre,numero,estado,quote_id,tipo_obra,estructura`);
+    if (!obra) return;
+    const res = await invokeFunction('obras-service', { action: 'list-tareas', obra_id: obraId });
+    tareasTabData = { obraId, obra, tareas: res.tareas || [], grouped: res.grouped || {} };
+    document.getElementById('tareasObraInfo').textContent = `#OBR-${obra.numero} · ${obra.estado} · ${(res.tareas||[]).length} tareas`;
+    // Show/hide map toggle for edificios
+    const hasNiveles = (res.tareas || []).some(t => t.nivel && !t.unidad.startsWith('TPL:'));
+    document.getElementById('tareasViewToggle').style.display = hasNiveles ? '' : 'none';
+    if (!hasNiveles && tareasTabView === 'mapa') { tareasTabView = 'lista'; }
+    await loadEmpleados();
+    if (tareasTabView === 'mapa' && hasNiveles) {
+      document.getElementById('tareasTabContent').style.display = 'none';
+      document.getElementById('tareasMapContent').style.display = '';
+      document.getElementById('cronogramaContent').style.display = 'none';
+      renderBuildingMap();
+    } else if (tareasTabView === 'cronograma' && hasNiveles) {
+      document.getElementById('tareasTabContent').style.display = 'none';
+      document.getElementById('tareasMapContent').style.display = 'none';
+      document.getElementById('cronogramaContent').style.display = '';
+      loadCronograma();
+    } else {
+      document.getElementById('tareasTabContent').style.display = '';
+      document.getElementById('tareasMapContent').style.display = 'none';
+      document.getElementById('cronogramaContent').style.display = 'none';
+      renderTareasTab();
+    }
+  } catch(e) {
+    content.innerHTML = `<div class="empty">Error: ${esc(e.message)}</div>`;
+  }
+}
+
+function renderTareasTab() {
+  const { tareas, obraId, obra } = tareasTabData;
+  const content = document.getElementById('tareasTabContent');
+  if (!obraId) { content.innerHTML = '<div class="empty">Seleccioná una obra</div>'; return; }
+
+  // Filter out plantilla tareas
+  let all = tareas.filter(t => !t.unidad.startsWith('TPL:'));
+  if (all.length === 0) {
+    const hasQuote = obra && obra.quote_id;
+    content.innerHTML = `<div class="empty" style="padding:24px">
+      <p style="margin-bottom:12px">Sin tareas para esta obra</p>
+      ${hasQuote ? `<button class="btn btn-primary btn-sm" onclick="this.disabled=true;this.textContent='Creando...';tareasTabBatchCreate()">Crear tareas desde quote</button>` : ''}
+      <button class="btn btn-secondary btn-sm" style="margin-left:6px" onclick="tareasTabAddTarea()">+ Agregar tarea</button>
+    </div>`;
+    return;
+  }
+
+  // Apply filters
+  let filtered = all;
+  const f = tareasTabFilters;
+  if (f.nivel) filtered = filtered.filter(t => (t.nivel || '(sin nivel)') === f.nivel);
+  if (f.unidad) filtered = filtered.filter(t => t.unidad === f.unidad);
+  if (f.tipologia) filtered = filtered.filter(t => t.tipologia === f.tipologia);
+  if (f.estado) filtered = filtered.filter(t => t.estado === f.estado);
+  if (f.operario) {
+    if (f.operario === 'none') filtered = filtered.filter(t => getTareaOpIds(t).length === 0);
+    else filtered = filtered.filter(t => getTareaOpIds(t).includes(parseInt(f.operario)));
+  }
+
+  // Extract filter options from full dataset
+  const allNiveles = [...new Set(all.map(t => t.nivel || '(sin nivel)'))].sort((a,b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    if (!isNaN(na)) return -1;
+    if (!isNaN(nb)) return 1;
+    return a.localeCompare(b);
+  });
+  const hasNiveles = allNiveles.length > 1 || (allNiveles.length === 1 && allNiveles[0] !== '(sin nivel)');
+  const allUnidades = [...new Set(all.filter(t => t.unidad).map(t => t.unidad))].sort();
+  const allTipologias = [...new Set(all.map(t => t.tipologia))].sort();
+  const opSet = new Map();
+  all.forEach(t => getTareaOps(t).forEach(o => { if (!opSet.has(o.id)) opSet.set(o.id, o.nombre); }));
+
+  // Stats
+  const total = filtered.length;
+  const completadas = filtered.filter(t => t.estado === 'completada').length;
+  const enProgreso = filtered.filter(t => t.estado === 'en_progreso').length;
+  const bloqueadas = filtered.filter(t => t.estado === 'bloqueada').length;
+  const prom = total > 0 ? Math.round(filtered.reduce((s,t) => s + (t.progreso_pct||0), 0) / total) : 0;
+
+  let html = `<div class="tarea-stats" style="margin-bottom:8px">
+    <div class="tarea-stat"><span class="ts-val">${total}</span><span class="ts-lbl">Total</span></div>
+    <div class="tarea-stat"><span class="ts-val" style="color:var(--success)">${completadas}</span><span class="ts-lbl">Completadas</span></div>
+    <div class="tarea-stat"><span class="ts-val" style="color:var(--accent)">${enProgreso}</span><span class="ts-lbl">En progreso</span></div>
+    ${bloqueadas > 0 ? `<div class="tarea-stat"><span class="ts-val" style="color:var(--danger)">${bloqueadas}</span><span class="ts-lbl">Bloqueadas</span></div>` : ''}
+    <div class="tarea-stat"><span class="ts-val">${prom}%</span><span class="ts-lbl">Progreso</span></div>
+  </div>
+  <div class="tareas-filter-bar">
+    ${hasNiveles ? `<select onchange="tareasTabFilters.nivel=this.value;renderTareasTab()">
+      <option value="">Todos los niveles (${allNiveles.length})</option>
+      ${allNiveles.map(n => `<option value="${n}"${f.nivel===n?' selected':''}>${/^\d+$/.test(n)?'Nivel '+n:n}</option>`).join('')}
+    </select>` : ''}
+    <select onchange="tareasTabFilters.unidad=this.value;renderTareasTab()">
+      <option value="">Todas las unidades (${allUnidades.length})</option>
+      ${allUnidades.map(u => `<option value="${u}"${f.unidad===u?' selected':''}>${u}</option>`).join('')}
+    </select>
+    <select onchange="tareasTabFilters.tipologia=this.value;renderTareasTab()">
+      <option value="">Todas las tipologías (${allTipologias.length})</option>
+      ${allTipologias.map(t => `<option value="${t}"${f.tipologia===t?' selected':''}>${t}</option>`).join('')}
+    </select>
+    <select onchange="tareasTabFilters.estado=this.value;renderTareasTab()">
+      <option value="">Todos los estados</option>
+      ${TAREA_ESTADOS.map(e => `<option value="${e}"${f.estado===e?' selected':''}>${TAREA_ESTADO_LABELS[e]}</option>`).join('')}
+    </select>
+    <select onchange="tareasTabFilters.operario=this.value;renderTareasTab()">
+      <option value="">Todos los operarios</option>
+      <option value="none"${f.operario==='none'?' selected':''}>Sin asignar</option>
+      ${[...opSet.entries()].map(([id,n]) => `<option value="${id}"${f.operario==id?' selected':''}>${n}</option>`).join('')}
+    </select>
+    <button class="btn btn-secondary btn-sm" onclick="tareasTabAddTarea()" style="margin-left:auto">+ Tarea</button>
+  </div>`;
+
+  // Track visible IDs and prune selection
+  tareasTabVisibleIds = filtered.map(t => t.id);
+  tareasTabSelected = new Set([...tareasTabSelected].filter(id => tareasTabVisibleIds.includes(id)));
+  const selCount = tareasTabSelected.size;
+  const allVisSelected = tareasTabVisibleIds.length > 0 && selCount === tareasTabVisibleIds.length;
+
+  // Bulk action bar
+  const instaladores = getInstaladores();
+  html += `<div class="tt-bulk-bar" id="ttBulkBar" style="${selCount === 0 ? 'display:none' : ''}">
+    <input type="checkbox" class="tt-check" ${allVisSelected?'checked':''} onchange="toggleTareasTabSelectAll(this.checked)" title="Seleccionar todas">
+    <span class="bulk-count" id="ttBulkCount">${selCount} seleccionada${selCount!==1?'s':''}</span>
+    <span class="bulk-sep"></span>
+    <select id="ttBulkEstado">
+      <option value="">Cambiar estado...</option>
+      ${TAREA_ESTADOS.map(e => `<option value="${e}">${TAREA_ESTADO_LABELS[e]}</option>`).join('')}
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="bulkChangeEstado()">Aplicar</button>
+    <span class="bulk-sep"></span>
+    <select id="ttBulkOperario">
+      <option value="">Asignar instalador...</option>
+      ${instaladores.map(e => `<option value="${e.id}">${e.nombre} ${e.apellido||''}</option>`).join('')}
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="bulkAssignOperarioSelected()">Asignar</button>
+    <button class="btn btn-secondary btn-sm" onclick="clearTareasSelection()" style="margin-left:auto">Deseleccionar</button>
+  </div>`;
+
+  // "Select all" checkbox in the header area when no selection active
+  if (selCount === 0) {
+    html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <input type="checkbox" class="tt-check" onchange="toggleTareasTabSelectAll(this.checked)">
+      <span style="font-size:11px;color:var(--text-3)">Seleccionar tareas para acciones masivas</span>
+    </div>`;
+  }
+
+  // Group filtered by nivel → unidad → ambiente
+  const nivelGrouped = {};
+  for (const t of filtered) {
+    const n = t.nivel || '(sin nivel)';
+    const u = t.unidad || '(sin unidad)';
+    const a = t.ambiente || '(sin ambiente)';
+    if (!nivelGrouped[n]) nivelGrouped[n] = {};
+    if (!nivelGrouped[n][u]) nivelGrouped[n][u] = {};
+    if (!nivelGrouped[n][u][a]) nivelGrouped[n][u][a] = [];
+    nivelGrouped[n][u][a].push(t);
+  }
+
+  const niveles = Object.keys(nivelGrouped).sort((a,b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    if (!isNaN(na)) return -1;
+    if (!isNaN(nb)) return 1;
+    return a.localeCompare(b);
+  });
+  const skipNivelWrap = !hasNiveles; // casas: skip nivel wrapper, render unidades directly
+
+  for (const nivel of niveles) {
+    const unidadesMap = nivelGrouped[nivel];
+    const allNivelTareas = Object.values(unidadesMap).flatMap(uMap => Object.values(uMap).flat());
+    const nDone = allNivelTareas.filter(t => t.estado === 'completada').length;
+    const nPct = allNivelTareas.length > 0 ? Math.round(allNivelTareas.reduce((s,t) => s + (t.progreso_pct||0), 0) / allNivelTareas.length) : 0;
+    const nKey = 'n:' + nivel;
+    const nCollapsed = tareasTabCollapsed.has(nKey);
+
+    const nivelLabel = /^\d+$/.test(nivel) ? 'Nivel ' + nivel : nivel;
+    if (!skipNivelWrap) {
+      html += `<div class="tareas-nivel-group">
+        <div class="tareas-nivel-header" onclick="toggleTareasTabGroup('${esc(nKey)}')">
+          <span style="font-size:12px">${nCollapsed ? '▸' : '▾'}</span>
+          <span>${esc(nivelLabel)}</span>
+          <span style="font-size:11px;font-weight:400;color:var(--text-3)">${nDone}/${allNivelTareas.length} completadas</span>
+          <div class="tarea-progress-mini" style="width:60px"><div class="tp-fill" style="width:${nPct}%;background:${nPct>=100?'var(--success)':'var(--accent)'}"></div></div>
+          <span style="font-size:11px;font-weight:400;color:var(--text-3)">${nPct}%</span>
+        </div>`;
+    }
+
+    if (skipNivelWrap || !nCollapsed) {
+      if (!skipNivelWrap) html += '<div class="tareas-nivel-body">';
+
+      const unidades = Object.keys(unidadesMap).sort();
+      for (const unidad of unidades) {
+        const ambientes = unidadesMap[unidad];
+        const ambKeys = Object.keys(ambientes);
+        const uTareas = ambKeys.flatMap(a => ambientes[a]);
+        const uDone = uTareas.filter(t => t.estado === 'completada').length;
+        const uPct = uTareas.length > 0 ? Math.round(uTareas.reduce((s,t) => s + (t.progreso_pct||0), 0) / uTareas.length) : 0;
+        const uKey = 'u:' + nivel + '/' + unidad;
+        const collapsed = tareasTabCollapsed.has(uKey);
+
+        html += `<div class="tareas-group">
+          <div class="tareas-group-header" onclick="toggleTareasTabGroup('${esc(uKey)}')">
+            <span style="font-size:11px">${collapsed ? '▸' : '▾'}</span>
+            <span style="font-family:var(--mono);font-weight:600">${esc(unidad)}</span>
+            <span style="font-size:11px;color:var(--text-3)">${uDone}/${uTareas.length} completadas</span>
+            <div class="tarea-progress-mini" style="width:60px"><div class="tp-fill" style="width:${uPct}%;background:${uPct>=100?'var(--success)':'var(--accent)'}"></div></div>
+            <span style="font-size:11px;color:var(--text-3)">${uPct}%</span>
+          </div>`;
+
+        if (!collapsed) {
+          html += '<div class="tareas-group-body">';
+          for (const amb of ambKeys) {
+            html += `<div class="tareas-amb-header">${esc(amb)} <span style="font-size:10px;color:var(--text-3)">(${ambientes[amb].length})</span></div>`;
+            for (const t of ambientes[amb]) {
+              html += renderTareaRow(t, 'tab');
+            }
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      if (!skipNivelWrap) html += '</div>';
+    }
+    if (!skipNivelWrap) html += '</div>';
+  }
+
+  if (filtered.length === 0 && all.length > 0) {
+    html += '<div class="empty" style="padding:16px">No hay tareas que coincidan con los filtros</div>';
+  }
+
+  content.innerHTML = html;
+}
+
+function toggleTareasTabGroup(key) {
+  if (tareasTabCollapsed.has(key)) tareasTabCollapsed.delete(key);
+  else tareasTabCollapsed.add(key);
+  renderTareasTab();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BUILDING MAP (Mapa Edificio)
+// ═══════════════════════════════════════════════════════════════
+function setTareasView(view) {
+  tareasTabView = view;
+  document.querySelectorAll('#tareasViewToggle button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`#tareasViewToggle button[onclick*="${view}"]`)?.classList.add('active');
+  document.getElementById('tareasTabContent').style.display = view === 'lista' ? '' : 'none';
+  document.getElementById('tareasMapContent').style.display = view === 'mapa' ? '' : 'none';
+  document.getElementById('cronogramaContent').style.display = view === 'cronograma' ? '' : 'none';
+  if (view === 'mapa') renderBuildingMap();
+  if (view === 'lista') renderTareasTab();
+  if (view === 'cronograma') loadCronograma();
+}
+
+function getBmapColor(pct, hasBlocker, hasMaterial) {
+  if (hasBlocker) return '#c93c3c';  // red — bloqueada
+  if (pct >= 100) return '#2a8a4a';  // green — completada
+  if (pct >= 75) return '#3bb06a';   // light green
+  if (pct >= 50) return '#2e5faa';   // blue — en progreso
+  if (pct >= 25) return '#5b8fd9';   // light blue
+  if (pct > 0) return '#c78b17';     // yellow-dark — arrancó
+  if (hasMaterial) return '#e8b83a'; // yellow — material en unidad
+  return '#d0d4db';                  // gray — sin empezar
+}
+
+function renderBuildingMap() {
+  const { tareas, obraId, obra } = tareasTabData;
+  const container = document.getElementById('tareasMapContent');
+  if (!obraId || !obra) { container.innerHTML = '<div class="empty">Seleccioná una obra</div>'; return; }
+
+  // Filter out plantilla tareas
+  const allRaw = tareas.filter(t => t.unidad && !t.unidad.startsWith('TPL:'));
+  if (allRaw.length === 0) { container.innerHTML = '<div class="empty">Sin tareas para mostrar en mapa</div>'; return; }
+
+  // Extract unique ambientes for filter
+  const ambientesSet = new Set(allRaw.map(t => t.ambiente || '(sin ambiente)'));
+  const ambientesList = [...ambientesSet].sort();
+
+  // Apply ambiente filter
+  const all = bmapAmbienteFilter ? allRaw.filter(t => (t.ambiente || '(sin ambiente)') === bmapAmbienteFilter) : allRaw;
+  if (all.length === 0) { container.innerHTML = '<div class="empty">Sin tareas para "' + esc(bmapAmbienteFilter) + '"</div>'; return; }
+
+  // Build stats per nivel+unidad
+  const unitStats = {};
+  for (const t of all) {
+    const key = (t.nivel || '?') + ':' + t.unidad;
+    if (!unitStats[key]) unitStats[key] = { nivel: t.nivel, unidad: t.unidad, total: 0, completadas: 0, bloqueadas: 0, material: 0, sumPct: 0, ambientes: {} };
+    const s = unitStats[key];
+    s.total++;
+    if (t.estado === 'completada') s.completadas++;
+    if (t.estado === 'bloqueada') s.bloqueadas++;
+    if (t.estado === 'material_en_unidad') s.material++;
+    s.sumPct += (t.progreso_pct || 0);
+    const amb = t.ambiente || '(sin ambiente)';
+    if (!s.ambientes[amb]) s.ambientes[amb] = { total: 0, completadas: 0, bloqueadas: 0, material: 0 };
+    s.ambientes[amb].total++;
+    if (t.estado === 'completada') s.ambientes[amb].completadas++;
+    if (t.estado === 'bloqueada') s.ambientes[amb].bloqueadas++;
+    if (t.estado === 'material_en_unidad') s.ambientes[amb].material++;
+  }
+
+  // Group by nivel
+  const nivelMap = {};
+  for (const s of Object.values(unitStats)) {
+    const n = s.nivel || '?';
+    if (!nivelMap[n]) nivelMap[n] = [];
+    nivelMap[n].push(s);
+  }
+
+  // Sort niveles numéricamente (top = más alto)
+  const niveles = Object.keys(nivelMap).sort((a, b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    if (!isNaN(na) && !isNaN(nb)) return nb - na; // descending for building view
+    if (!isNaN(na)) return -1;
+    if (!isNaN(nb)) return 1;
+    return b.localeCompare(a);
+  });
+
+  // Sort unidades within each nivel
+  for (const n of niveles) {
+    nivelMap[n].sort((a, b) => {
+      const ua = parseInt(a.unidad.slice(-2)), ub = parseInt(b.unidad.slice(-2));
+      if (!isNaN(ua) && !isNaN(ub)) return ua - ub;
+      return a.unidad.localeCompare(b.unidad);
+    });
+  }
+
+  // Find max units per row for consistent widths
+  const maxUnits = Math.max(...niveles.map(n => nivelMap[n].length));
+
+  // Overall stats
+  const totalTareas = all.length;
+  const totalCompletadas = all.filter(t => t.estado === 'completada').length;
+  const totalBloqueadas = all.filter(t => t.estado === 'bloqueada').length;
+  const totalMaterial = all.filter(t => t.estado === 'material_en_unidad').length;
+  const avgPct = totalTareas > 0 ? Math.round(all.reduce((s, t) => s + (t.progreso_pct || 0), 0) / totalTareas) : 0;
+
+  // Ambiente filter dropdown
+  const ambFilterHtml = ambientesList.length > 1 ? `<div style="text-align:center;margin-bottom:8px">
+    <select onchange="bmapAmbienteFilter=this.value;bmapSelectedUnit=null;renderBuildingMap()" style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:600">
+      <option value="">Todos los ambientes (${allRaw.length} tareas)</option>
+      ${ambientesList.map(a => {
+        const cnt = allRaw.filter(t => (t.ambiente || '(sin ambiente)') === a).length;
+        return `<option value="${esc(a)}"${bmapAmbienteFilter===a?' selected':''}>${esc(a)} (${cnt})</option>`;
+      }).join('')}
+    </select>
+  </div>` : '';
+
+  let html = `<div class="bmap-container">
+    <div style="text-align:center;margin-bottom:8px">
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px">${esc(obra.nombre || '')}${bmapAmbienteFilter ? ' · ' + esc(bmapAmbienteFilter) : ''}</div>
+      <div style="font-size:12px;color:var(--text-3)">${niveles.length} niveles · ${Object.keys(unitStats).length} unidades · ${totalTareas} tareas · ${avgPct}% promedio</div>
+    </div>
+    ${ambFilterHtml}
+    <div class="bmap-legend">
+      <div class="bmap-legend-item"><div class="bmap-legend-dot" style="background:#d0d4db"></div>Sin empezar</div>
+      <div class="bmap-legend-item"><div class="bmap-legend-dot" style="background:#e8b83a"></div>Material en unidad</div>
+      <div class="bmap-legend-item"><div class="bmap-legend-dot" style="background:#c78b17"></div>Iniciado</div>
+      <div class="bmap-legend-item"><div class="bmap-legend-dot" style="background:#5b8fd9"></div>25-50%</div>
+      <div class="bmap-legend-item"><div class="bmap-legend-dot" style="background:#2e5faa"></div>50-75%</div>
+      <div class="bmap-legend-item"><div class="bmap-legend-dot" style="background:#3bb06a"></div>75-99%</div>
+      <div class="bmap-legend-item"><div class="bmap-legend-dot" style="background:#2a8a4a"></div>Completado</div>
+      <div class="bmap-legend-item"><div class="bmap-legend-dot" style="background:#c93c3c"></div>Bloqueado</div>
+    </div>
+    <div class="bmap-building">`;
+
+  for (const nivel of niveles) {
+    const units = nivelMap[nivel];
+    const nivelLabel = /^\d+$/.test(nivel) ? 'N' + nivel : nivel;
+    html += `<div class="bmap-row">
+      <div class="bmap-label">${esc(nivelLabel)}</div>
+      <div class="bmap-cells">`;
+    for (const u of units) {
+      const pct = u.total > 0 ? Math.round(u.sumPct / u.total) : 0;
+      const color = getBmapColor(pct, u.bloqueadas > 0, u.material > 0);
+      const unitSuffix = u.unidad.slice(-2);
+      const sel = bmapSelectedUnit === u.unidad ? ' selected' : '';
+      let tipExtra = '';
+      if (u.bloqueadas > 0) tipExtra += ` — ${u.bloqueadas} bloqueadas!`;
+      if (u.material > 0) tipExtra += ` — ${u.material} con material`;
+      html += `<div class="bmap-cell${sel}" style="background:${color}"
+        onclick="bmapSelectUnit('${esc(u.unidad)}')"
+        title="${u.unidad}: ${u.completadas}/${u.total} tareas (${pct}%)${tipExtra}">${unitSuffix}<br>${pct}%</div>`;
+    }
+    // Pad empty cells if needed for narrower floors
+    for (let i = units.length; i < maxUnits; i++) {
+      html += '<div style="width:62px"></div>';
+    }
+    html += '</div></div>';
+  }
+
+  html += '</div>';
+
+  // Detail panel for selected unit
+  if (bmapSelectedUnit) {
+    const key = Object.keys(unitStats).find(k => k.endsWith(':' + bmapSelectedUnit));
+    const stat = key ? unitStats[key] : null;
+    if (stat) {
+      const pct = stat.total > 0 ? Math.round(stat.sumPct / stat.total) : 0;
+      html += `<div class="bmap-detail">
+        <div class="bmap-detail-header">
+          <span style="font-size:16px">${esc(stat.unidad)}</span>
+          <span style="font-size:12px;color:var(--text-3)">Nivel ${esc(stat.nivel || '?')}</span>
+          <span style="font-size:12px;font-weight:400;color:var(--text-3)">${stat.completadas}/${stat.total} tareas · ${pct}%</span>
+          ${stat.bloqueadas > 0 ? `<span style="font-size:12px;color:var(--danger)">${stat.bloqueadas} bloqueadas</span>` : ''}
+          <div class="tarea-progress-mini" style="width:80px;margin-left:8px"><div class="tp-fill" style="width:${pct}%;background:${pct>=100?'var(--success)':'var(--accent)'}"></div></div>
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto;font-size:11px" onclick="bmapGoToList('${esc(stat.unidad)}')">Ver tareas</button>
+        </div>
+        <div class="bmap-detail-grid">`;
+      const ambKeys = Object.keys(stat.ambientes).sort();
+      for (const amb of ambKeys) {
+        const a = stat.ambientes[amb];
+        const aPct = a.total > 0 ? Math.round(a.completadas / a.total * 100) : 0;
+        const aBg = aPct >= 100 ? 'rgba(42,138,74,0.1)' : a.bloqueadas > 0 ? 'rgba(201,60,60,0.1)' : 'var(--bg)';
+        html += `<div class="bmap-amb-card" style="background:${aBg}">
+          <div class="amb-name">${esc(amb)}</div>
+          <div class="amb-stat">${a.completadas}/${a.total} tareas${a.bloqueadas > 0 ? ' · <span style="color:var(--danger)">' + a.bloqueadas + ' bloqueadas</span>' : ''}</div>
+          <div class="tarea-progress-mini" style="width:100%;margin-top:4px"><div class="tp-fill" style="width:${aPct}%;background:${aPct>=100?'var(--success)':'var(--accent)'}"></div></div>
+        </div>`;
+      }
+      html += '</div></div>';
+    }
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function bmapSelectUnit(unidad) {
+  bmapSelectedUnit = bmapSelectedUnit === unidad ? null : unidad;
+  renderBuildingMap();
+}
+
+function bmapGoToList(unidad) {
+  tareasTabFilters.unidad = unidad;
+  setTareasView('lista');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CRONOGRAMA
+// ═══════════════════════════════════════════════════════════════
+const CRONO_ESTADO_LABELS = {
+  finalizado: 'Finalizado', en_ejecucion: 'En ejecución',
+  con_observaciones: 'Con obs.', material_recibido: 'Material recibido',
+  pendiente: 'Pendiente', sin_tareas: 'Sin tareas'
+};
+
+let cronoData = [];
+let cronoSaving = false;
+
+async function loadCronograma() {
+  const { obraId } = tareasTabData;
+  const container = document.getElementById('cronogramaContent');
+  if (!obraId) { container.innerHTML = '<div class="empty">Seleccioná una obra</div>'; return; }
+  container.innerHTML = '<div style="padding:24px;text-align:center"><div class="spinner"></div></div>';
+  try {
+    const res = await invokeFunction('obras-service', { action: 'list-cronograma', obra_id: obraId });
+    cronoData = res.items || [];
+    renderCronograma(res);
+  } catch(e) {
+    container.innerHTML = `<div class="empty">Error: ${esc(e.message)}</div>`;
+  }
+}
+
+function renderCronograma(res) {
+  const { items, alertas, today } = res;
+  const container = document.getElementById('cronogramaContent');
+  const obra = tareasTabData.obra;
+
+  // Summary
+  const totalNiveles = items.length;
+  const finalizados = items.filter(i => i.estado === 'finalizado').length;
+  const enEjec = items.filter(i => i.estado === 'en_ejecucion').length;
+  const conObs = items.filter(i => i.estado === 'con_observaciones').length;
+  const retrasados = (alertas || []).length;
+  const avgPct = totalNiveles > 0 ? Math.round(items.reduce((s,i) => s + i.progreso_pct, 0) / totalNiveles) : 0;
+
+  let html = `<div style="margin-bottom:12px">
+    <div style="font-size:15px;font-weight:700;margin-bottom:8px">${esc(obra?.nombre || '')} — Cronograma</div>
+    <div class="crono-summary">
+      <div class="crono-summary-item"><div class="crono-summary-val">${totalNiveles}</div><div class="crono-summary-lbl">Niveles</div></div>
+      <div class="crono-summary-item"><div class="crono-summary-val" style="color:var(--success)">${finalizados}</div><div class="crono-summary-lbl">Finalizados</div></div>
+      <div class="crono-summary-item"><div class="crono-summary-val" style="color:var(--accent)">${enEjec}</div><div class="crono-summary-lbl">En ejecución</div></div>
+      ${conObs > 0 ? `<div class="crono-summary-item"><div class="crono-summary-val" style="color:var(--warn)">${conObs}</div><div class="crono-summary-lbl">Con obs.</div></div>` : ''}
+      ${retrasados > 0 ? `<div class="crono-summary-item"><div class="crono-summary-val" style="color:var(--danger)">${retrasados}</div><div class="crono-summary-lbl">Retrasados</div></div>` : ''}
+      <div class="crono-summary-item"><div class="crono-summary-val">${avgPct}%</div><div class="crono-summary-lbl">Promedio</div></div>
+    </div>
+  </div>`;
+
+  // Alerts
+  if (alertas && alertas.length > 0) {
+    html += '<div class="crono-alerts">';
+    for (const a of alertas) {
+      const cls = a.dias_retraso > 14 ? 'danger' : 'warn';
+      html += `<div class="crono-alert ${cls}">
+        <strong>Nivel ${esc(a.nivel)}</strong> — ${a.dias_retraso} días de retraso (planificado: ${a.fecha_fin_plan}) · ${a.progreso_pct}% completado
+      </div>`;
+    }
+    html += '</div>';
+  }
+
+  // Table
+  html += `<div style="overflow-x:auto"><table class="crono-table">
+    <thead><tr>
+      <th>Nivel</th>
+      <th>Estado</th>
+      <th>Progreso</th>
+      <th>Tareas</th>
+      <th>Inicio plan</th>
+      <th>Fin plan</th>
+      <th>Inicio real</th>
+      <th>Fin real</th>
+      <th>Retraso</th>
+      <th>Proyección</th>
+      <th>Notas</th>
+    </tr></thead><tbody>`;
+
+  for (const item of items) {
+    const nivelLabel = /^\d+$/.test(item.nivel) ? 'N' + item.nivel : item.nivel;
+    const retrasoClass = item.dias_retraso > 14 ? 'danger' : item.dias_retraso > 0 ? 'warn' : 'ok';
+    const retrasoText = item.estado === 'finalizado'
+      ? (item.dias_retraso > 0 ? `+${item.dias_retraso}d` : item.dias_retraso < 0 ? `${item.dias_retraso}d` : 'a tiempo')
+      : (item.dias_retraso > 0 ? `+${item.dias_retraso}d` : '—');
+    const proyText = item.fecha_proyectada || '—';
+    const proyClass = item.fecha_proyectada && item.fecha_fin_plan && item.fecha_proyectada > item.fecha_fin_plan ? 'color:var(--danger)' : '';
+
+    html += `<tr>
+      <td><strong style="font-family:var(--mono)">${esc(nivelLabel)}</strong></td>
+      <td><span class="crono-estado ${item.estado}">${CRONO_ESTADO_LABELS[item.estado] || item.estado}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="tarea-progress-mini" style="width:50px"><div class="tp-fill" style="width:${item.progreso_pct}%;background:${item.progreso_pct>=100?'var(--success)':'var(--accent)'}"></div></div>
+          <span class="mono" style="font-size:11px">${item.progreso_pct}%</span>
+        </div>
+      </td>
+      <td style="font-size:11px;font-family:var(--mono)">${item.tareas_completadas}/${item.tareas_total}${item.tareas_bloqueadas > 0 ? ' <span style="color:var(--danger)">(' + item.tareas_bloqueadas + ' bloq)</span>' : ''}</td>
+      <td><input type="date" value="${item.fecha_inicio_plan || ''}" onchange="saveCronoField('${esc(item.nivel)}','fecha_inicio_plan',this.value)"></td>
+      <td><input type="date" value="${item.fecha_fin_plan || ''}" onchange="saveCronoField('${esc(item.nivel)}','fecha_fin_plan',this.value)"></td>
+      <td><input type="date" value="${item.fecha_inicio_real || ''}" onchange="saveCronoField('${esc(item.nivel)}','fecha_inicio_real',this.value)"></td>
+      <td><input type="date" value="${item.fecha_fin_real || ''}" onchange="saveCronoField('${esc(item.nivel)}','fecha_fin_real',this.value)"></td>
+      <td><span class="crono-retraso ${retrasoClass}">${retrasoText}</span></td>
+      <td style="font-size:11px;font-family:var(--mono);${proyClass}">${proyText}</td>
+      <td><input class="crono-notas" value="${esc(item.notas || '')}" placeholder="—" onchange="saveCronoField('${esc(item.nivel)}','notas',this.value)"></td>
+    </tr>`;
+  }
+
+  html += '</tbody></table></div>';
+
+  // Gantt mini
+  if (items.some(i => i.fecha_inicio_plan || i.fecha_fin_plan)) {
+    html += renderCronoGantt(items, today);
+  }
+
+  container.innerHTML = html;
+}
+
+function renderCronoGantt(items, today) {
+  // Find date range
+  let minDate = null, maxDate = null;
+  for (const i of items) {
+    for (const d of [i.fecha_inicio_plan, i.fecha_fin_plan, i.fecha_inicio_real, i.fecha_fin_real, i.fecha_proyectada]) {
+      if (d) {
+        if (!minDate || d < minDate) minDate = d;
+        if (!maxDate || d > maxDate) maxDate = d;
+      }
+    }
+  }
+  if (!minDate || !maxDate) return '';
+  // Add padding
+  const pad = 14;
+  const start = new Date(new Date(minDate).getTime() - pad * 86400000);
+  const end = new Date(new Date(maxDate).getTime() + pad * 86400000);
+  const range = end.getTime() - start.getTime();
+  const toPos = (d) => d ? Math.round((new Date(d).getTime() - start.getTime()) / range * 100) : null;
+
+  const todayPos = toPos(today);
+
+  let html = `<div style="margin-top:16px">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Timeline</div>
+    <div style="position:relative;padding:4px 0">`;
+
+  // Month markers
+  const months = [];
+  let cursor = new Date(start);
+  cursor.setDate(1);
+  cursor.setMonth(cursor.getMonth() + 1);
+  while (cursor < end) {
+    const pos = toPos(cursor.toISOString().split('T')[0]);
+    const label = cursor.toLocaleDateString('es-UY', { month: 'short', year: '2-digit' });
+    months.push({ pos, label });
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  html += `<div style="position:relative;height:16px;margin-bottom:4px;font-size:9px;color:var(--text-3)">`;
+  for (const m of months) {
+    html += `<span style="position:absolute;left:${m.pos}%;transform:translateX(-50%)">${m.label}</span>`;
+  }
+  html += '</div>';
+
+  for (const item of items) {
+    const nivelLabel = /^\d+$/.test(item.nivel) ? 'N' + item.nivel : item.nivel;
+    const planStart = toPos(item.fecha_inicio_plan);
+    const planEnd = toPos(item.fecha_fin_plan);
+    const realStart = toPos(item.fecha_inicio_real || item.fecha_inicio_plan);
+    const realEnd = toPos(item.fecha_fin_real || (item.estado === 'finalizado' ? item.fecha_fin_plan : null));
+    const projEnd = toPos(item.fecha_proyectada);
+
+    const barColor = item.estado === 'finalizado' ? 'var(--success)' :
+                     item.estado === 'con_observaciones' ? 'var(--warn)' :
+                     item.estado === 'material_recibido' ? '#e8b83a' :
+                     item.estado === 'en_ejecucion' ? 'var(--accent)' : 'var(--border)';
+
+    html += `<div style="display:flex;align-items:center;gap:0;margin-bottom:2px">
+      <div style="width:40px;font-size:10px;font-weight:600;font-family:var(--mono);color:var(--text-3);flex-shrink:0">${esc(nivelLabel)}</div>
+      <div class="crono-gantt" style="flex:1">`;
+
+    // Plan bar (background)
+    if (planStart !== null && planEnd !== null) {
+      html += `<div class="crono-gantt-bar crono-gantt-plan" style="left:${planStart}%;width:${Math.max(1, planEnd - planStart)}%"></div>`;
+    }
+    // Real/progress bar
+    if (realStart !== null) {
+      const endPos = realEnd || projEnd || todayPos || planEnd;
+      if (endPos !== null) {
+        html += `<div class="crono-gantt-bar crono-gantt-real" style="left:${realStart}%;width:${Math.max(1, endPos - realStart)}%;background:${barColor}"></div>`;
+      }
+    }
+    // Today marker
+    if (todayPos !== null) {
+      html += `<div class="crono-gantt-today" style="left:${todayPos}%"></div>`;
+    }
+
+    html += '</div></div>';
+  }
+
+  html += '</div></div>';
+  return html;
+}
+
+async function saveCronoField(nivel, field, value) {
+  if (cronoSaving) return;
+  cronoSaving = true;
+  try {
+    const payload = { obra_id: tareasTabData.obraId, nivel };
+    payload[field] = value || null;
+    await invokeFunction('obras-service', { action: 'upsert-cronograma', ...payload });
+    // Reload to recalculate delays
+    const res = await invokeFunction('obras-service', { action: 'list-cronograma', obra_id: tareasTabData.obraId });
+    cronoData = res.items || [];
+    renderCronograma(res);
+  } catch(e) {
+    toast('Error guardando: ' + e.message, 'error');
+  } finally {
+    cronoSaving = false;
+  }
+}
+
+async function tareasTabBatchCreate() {
+  const { obraId, obra } = tareasTabData;
+  if (!obraId || !obra?.quote_id) return;
+  try {
+    showLoading();
+    await invokeFunction('obras-service', { action: 'batch-create-tareas', obra_id: obraId, quote_id: obra.quote_id });
+    toast('Tareas creadas desde quote', 'success');
+    await loadTareasTab(obraId);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  finally { hideLoading(); }
+}
+
+function tareasTabAddTarea() {
+  const content = document.getElementById('tareasTabContent');
+  const existing = document.getElementById('tareasTabAddForm');
+  if (existing) { existing.remove(); return; }
+
+  const obraId = tareasTabData.obraId;
+  if (!obraId) return;
+
+  const form = document.createElement('div');
+  form.id = 'tareasTabAddForm';
+  form.className = 'tarea-detail-panel';
+  form.style.marginBottom = '14px';
+  form.innerHTML = `
+    <strong style="font-size:13px">Nueva tarea</strong>
+    <div class="form-row" style="margin-top:8px">
+      <div class="form-group"><label>Tipología *</label><input id="tt-tipologia" placeholder="Ej: Mueble bajo+alto" /></div>
+      <div class="form-group"><label>Ambiente *</label><input id="tt-ambiente" placeholder="Ej: Cocina" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Unidad</label><input id="tt-unidad" placeholder="Ej: 1102" /></div>
+      <div class="form-group"><label>Descripción</label><input id="tt-desc" /></div>
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('tareasTabAddForm').remove()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="btnTtAdd" onclick="submitTareasTabAdd()">Crear tarea</button>
+    </div>`;
+  content.insertBefore(form, content.querySelector('.tareas-group') || content.firstChild);
+}
+
+async function submitTareasTabAdd() {
+  const tipologia = document.getElementById('tt-tipologia').value.trim();
+  const ambiente = document.getElementById('tt-ambiente').value.trim();
+  if (!tipologia || !ambiente) { toast('Tipología y ambiente son requeridos', 'error'); return; }
+  const btn = document.getElementById('btnTtAdd');
+  if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+  try {
+    await invokeFunction('obras-service', {
+      action: 'create-tarea', obra_id: tareasTabData.obraId, tipologia, ambiente,
+      unidad: document.getElementById('tt-unidad').value.trim() || '',
+      descripcion: document.getElementById('tt-desc').value.trim() || null,
+    });
+    tareasTabExpandedTarea = null;
+    await loadTareasTab(tareasTabData.obraId);
+    toast('Tarea creada', 'success');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Crear tarea'; }
+  }
+}
+
+// ── Tareas tab: selection & bulk actions ──
+function toggleTareasTabSelect(id, checked) {
+  if (checked) tareasTabSelected.add(id);
+  else tareasTabSelected.delete(id);
+  updateBulkBar();
+}
+
+function toggleTareasTabSelectAll(checked) {
+  if (checked) tareasTabVisibleIds.forEach(id => tareasTabSelected.add(id));
+  else tareasTabSelected.clear();
+  // Re-render to update all checkboxes
+  renderTareasTab();
+}
+
+function clearTareasSelection() {
+  tareasTabSelected.clear();
+  renderTareasTab();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('ttBulkBar');
+  if (!bar) return;
+  const count = tareasTabSelected.size;
+  bar.style.display = count === 0 ? 'none' : 'flex';
+  const countEl = document.getElementById('ttBulkCount');
+  if (countEl) countEl.textContent = `${count} seleccionada${count !== 1 ? 's' : ''}`;
+}
+
+async function bulkChangeEstado() {
+  const sel = document.getElementById('ttBulkEstado');
+  const estado = sel.value;
+  if (!estado) { toast('Seleccioná un estado', 'error'); return; }
+  const ids = [...tareasTabSelected];
+  if (ids.length === 0) { toast('Seleccioná tareas primero', 'error'); return; }
+  if (!confirm(`¿Cambiar ${ids.length} tarea${ids.length>1?'s':''} a "${TAREA_ESTADO_LABELS[estado]}"?`)) return;
+  try {
+    showLoading();
+    await invokeFunction('obras-service', { action: 'bulk-update-tareas', tarea_ids: ids, fields: { estado } });
+    tareasTabSelected.clear();
+    toast(`${ids.length} tareas actualizadas a ${TAREA_ESTADO_LABELS[estado]}`, 'success');
+    await loadTareasTab(tareasTabData.obraId);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  finally { hideLoading(); }
+}
+
+async function bulkAssignOperarioSelected() {
+  const sel = document.getElementById('ttBulkOperario');
+  const opId = sel.value;
+  if (!opId) { toast('Seleccioná un instalador', 'error'); return; }
+  const ids = [...tareasTabSelected];
+  if (ids.length === 0) { toast('Seleccioná tareas primero', 'error'); return; }
+  const emp = getInstaladores().find(e => e.id == opId);
+  const name = emp ? `${emp.nombre} ${emp.apellido||''}` : opId;
+  if (!confirm(`¿Asignar "${name}" a ${ids.length} tarea${ids.length>1?'s':''}?`)) return;
+  try {
+    showLoading();
+    await invokeFunction('obras-service', { action: 'bulk-update-tareas', tarea_ids: ids, operario_ids: [parseInt(opId)] });
+    tareasTabSelected.clear();
+    toast(`Instalador asignado a ${ids.length} tareas`, 'success');
+    await loadTareasTab(tareasTabData.obraId);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  finally { hideLoading(); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONFIG OBRA TAB
+// ═══════════════════════════════════════════════════════════════
+const TPL_PREFIX = 'TPL:';
+
+async function populateCfgObraSelect() {
+  const sel = document.getElementById('cfgObraSelect');
+  const current = sel.value;
+  try {
+    const obras = await sbQuery('obras', 'select=id,nombre,numero,tipo_obra,estado&order=numero.desc');
+    sel.innerHTML = '<option value="">— Seleccioná una obra —</option>' +
+      obras.map(o => `<option value="${o.id}">${esc(o.nombre)} (#${o.numero})</option>`).join('');
+    if (current) sel.value = current;
+  } catch(e) { console.error('Load obras for cfg:', e); }
+}
+
+async function openObraConfig(obraId) {
+  switchTab('obra');
+  await populateCfgObraSelect();
+  document.getElementById('cfgObraSelect').value = obraId;
+  loadObraConfig(obraId);
+}
+
+async function loadObraConfig(obraId) {
+  if (!obraId) {
+    cfgObra = null;
+    document.getElementById('cfgTipoWrap').style.display = 'none';
+    document.getElementById('cfgObraInfo').textContent = '';
+    document.getElementById('cfgContent').innerHTML = '<div class="empty">Seleccioná una obra para configurar su estructura y tareas</div>';
+    return;
+  }
+  try {
+    const [obra] = await sbQuery('obras', `id=eq.${obraId}&select=id,nombre,numero,tipo_obra,estructura,quote_id,estado`);
+    if (!obra) return;
+    cfgObra = obra;
+    cfgTipo = obra.tipo_obra || 'casa';
+    const est = obra.estructura || {};
+    cfgNiveles = est.niveles || [];
+
+    document.getElementById('cfgTipoWrap').style.display = '';
+    document.getElementById('cfgObraInfo').textContent = `#OBR-${obra.numero} · ${obra.estado}`;
+    updateTipoButtons();
+
+    // Load ALL tareas → classify into plantillas vs generated
+    const res = await invokeFunction('obras-service', { action: 'list-tareas', obra_id: obraId });
+    const tareas = res.tareas || [];
+
+    // Plantillas: tareas whose unidad starts with TPL: or is empty
+    const plantillaMap = {};
+    const generated = [];
+    for (const t of tareas) {
+      if (!t.unidad || t.unidad === '') {
+        // Legacy: empty unidad → default plantilla
+        const key = TPL_PREFIX + 'Default';
+        if (!plantillaMap[key]) plantillaMap[key] = [];
+        plantillaMap[key].push(t);
+      } else if (t.unidad.startsWith(TPL_PREFIX)) {
+        if (!plantillaMap[t.unidad]) plantillaMap[t.unidad] = [];
+        plantillaMap[t.unidad].push(t);
+      } else {
+        generated.push(t);
+      }
+    }
+    // If only default and it's empty, ensure at least one plantilla exists
+    cfgPlantillas = plantillaMap;
+    if (Object.keys(cfgPlantillas).length === 0) cfgPlantillas[TPL_PREFIX + 'Default'] = [];
+    cfgActivePlantilla = cfgActivePlantilla && cfgPlantillas[cfgActivePlantilla]
+      ? cfgActivePlantilla : Object.keys(cfgPlantillas)[0];
+    cfgExistingUnits = [...new Set(generated.map(t => t.unidad))];
+    cfgAsignaciones = est.asignaciones || {};
+
+    await loadEmpleados();
+    renderObraConfig();
+  } catch(e) {
+    toast('Error cargando obra: ' + e.message, 'error');
+  }
+}
+
+function updateTipoButtons() {
+  document.getElementById('cfgTipoCasa').className = cfgTipo === 'casa' ? 'active' : '';
+  document.getElementById('cfgTipoEdificio').className = cfgTipo === 'edificio' ? 'active' : '';
+}
+
+async function setTipoObra(tipo) {
+  cfgTipo = tipo;
+  updateTipoButtons();
+  if (cfgObra) await sbMutate('obras', 'PATCH', { tipo_obra: tipo }, `id=eq.${cfgObra.id}`);
+  renderObraConfig();
+}
+
+// ── Render principal ──
+function renderObraConfig() {
+  const c = document.getElementById('cfgContent');
+  if (!cfgObra) { c.innerHTML = '<div class="empty">Seleccioná una obra</div>'; return; }
+  let html = '';
+
+  // 1. Estructura (solo edificio)
+  if (cfgTipo === 'edificio') {
+    html += `<div class="cfg-section">
+      <h4>Estructura del edificio <span class="cfg-badge">${cfgNiveles.length} grupos</span></h4>
+      <p style="font-size:12px;color:var(--text-3);margin-bottom:12px">Definí los niveles y sus unidades.</p>
+      <div>
+        <div style="display:grid;grid-template-columns:140px 100px 1fr 36px;gap:8px;margin-bottom:4px">
+          <span style="font-size:11px;color:var(--text-3)">Niveles (ej: 4-12)</span>
+          <span style="font-size:11px;color:var(--text-3)">Cant.</span>
+          <span style="font-size:11px;color:var(--text-3)">Unidades</span><span></span>
+        </div>
+        ${cfgNiveles.map((n, i) => renderNivelRow(n, i)).join('')}
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="addNivelGroup()" style="margin-top:8px">+ Agregar grupo</button>
+      ${renderNivelPreview()}
+    </div>`;
+  }
+
+  // 2. Plantillas (multi)
+  html += renderPlantillasSection();
+
+  // 3. Asignación + Generar (solo edificio con estructura y plantillas)
+  const hasPlantillaItems = Object.values(cfgPlantillas).some(arr => arr.length > 0);
+  if (cfgTipo === 'edificio' && cfgNiveles.length > 0 && hasPlantillaItems) {
+    html += renderAssignGenerateSection();
+  }
+
+  // 4. Resumen
+  if (cfgExistingUnits.length > 0) {
+    html += `<div class="cfg-section">
+      <h4>Unidades con tareas <span class="cfg-badge">${cfgExistingUnits.length} unidades</span></h4>
+      <div class="nivel-preview">
+        ${cfgExistingUnits.sort().map(u => `<span class="np-unit has-tareas">${esc(u)}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  c.innerHTML = html;
+}
+
+// ── Plantillas section (multi-plantilla) ──
+function renderPlantillasSection() {
+  const names = Object.keys(cfgPlantillas);
+  const active = cfgActivePlantilla;
+  const items = cfgPlantillas[active] || [];
+
+  let tabs = names.map(name => {
+    const label = name.replace(TPL_PREFIX, '');
+    const count = (cfgPlantillas[name] || []).length;
+    const isActive = name === active;
+    const cls = isActive ? 'detalle-tab active' : 'detalle-tab';
+    return `<button class="${cls}" onclick="setActivePlantilla('${esc(name)}')">${esc(label)} (${count})</button>`;
+  }).join('');
+
+  let html = `<div class="cfg-section">
+    <h4>Plantillas <span class="cfg-badge">${names.length} modelo${names.length>1?'s':''}</span></h4>
+    <p style="font-size:12px;color:var(--text-3);margin-bottom:12px">
+      ${cfgTipo === 'edificio'
+        ? 'Cada plantilla define un tipo de unidad (ej: "2 ambientes", "3 ambientes"). Luego asigná cuáles unidades usan cada una.'
+        : 'Definí las tareas de la obra.'}
+    </p>
+    <div style="display:flex;gap:2px;background:var(--bg);border-radius:8px;padding:3px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+      ${tabs}
+      <button class="detalle-tab" onclick="createPlantilla()" title="Nueva plantilla" style="font-weight:700">+</button>
+    </div>`;
+
+  // Active plantilla toolbar
+  const activeLabel = active.replace(TPL_PREFIX, '');
+  html += `<div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+    <span style="font-size:12px;font-weight:600">${esc(activeLabel)}</span>
+    ${names.length > 1 ? `<button class="btn btn-secondary btn-sm" onclick="renamePlantilla('${esc(active)}')" style="font-size:11px;padding:2px 8px">Renombrar</button>
+    <button class="btn btn-danger btn-sm" onclick="deletePlantilla('${esc(active)}')" style="font-size:11px;padding:2px 8px">Eliminar</button>` : ''}
+    <button class="btn btn-secondary btn-sm" onclick="duplicatePlantilla('${esc(active)}')" style="font-size:11px;padding:2px 8px">Duplicar</button>
+    <span style="margin-left:auto;font-size:11px;color:var(--text-3)">${items.length} items</span>
+  </div>`;
+
+  // Table
+  html += renderPlantillaTable(items, active);
+
+  // Actions
+  html += `<div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn btn-secondary btn-sm" onclick="addPlantillaRow()">+ Agregar tarea</button>
+    ${cfgObra.quote_id ? `<button class="btn btn-secondary btn-sm" onclick="importPlantillaFromQuote()">Importar desde quote</button>` : ''}
+  </div></div>`;
+
+  return html;
+}
+
+function setActivePlantilla(name) {
+  cfgActivePlantilla = name;
+  renderObraConfig();
+}
+
+function createPlantilla() {
+  const name = prompt('Nombre de la nueva plantilla (ej: "3 ambientes"):');
+  if (!name || !name.trim()) return;
+  const key = TPL_PREFIX + name.trim();
+  if (cfgPlantillas[key]) { toast('Ya existe una plantilla con ese nombre', 'error'); return; }
+  cfgPlantillas[key] = [];
+  cfgActivePlantilla = key;
+  renderObraConfig();
+}
+
+async function renamePlantilla(oldKey) {
+  const oldName = oldKey.replace(TPL_PREFIX, '');
+  const newName = prompt('Nuevo nombre:', oldName);
+  if (!newName || !newName.trim() || newName.trim() === oldName) return;
+  const newKey = TPL_PREFIX + newName.trim();
+  if (cfgPlantillas[newKey]) { toast('Ya existe', 'error'); return; }
+
+  // Update tareas in DB
+  const tareas = cfgPlantillas[oldKey] || [];
+  for (const t of tareas) {
+    await invokeFunction('obras-service', { action: 'update-tarea', tarea_id: t.id, unidad: newKey });
+  }
+  // Update assignments: replace oldKey → newKey inside all group maps
+  let assignChanged = false;
+  for (const gKey of Object.keys(cfgAsignaciones)) {
+    const grp = cfgAsignaciones[gKey];
+    for (const u of Object.keys(grp)) {
+      if (grp[u] === oldKey) { grp[u] = newKey; assignChanged = true; }
+    }
+  }
+  if (assignChanged) saveEstructura();
+  cfgPlantillas[newKey] = tareas;
+  delete cfgPlantillas[oldKey];
+  cfgActivePlantilla = newKey;
+  renderObraConfig();
+  toast('Plantilla renombrada', 'success');
+}
+
+async function deletePlantilla(key) {
+  const tareas = cfgPlantillas[key] || [];
+  if (!confirm(`¿Eliminar plantilla "${key.replace(TPL_PREFIX,'')}" y sus ${tareas.length} tareas?`)) return;
+  for (const t of tareas) {
+    await invokeFunction('obras-service', { action: 'delete-tarea', tarea_id: t.id });
+  }
+  delete cfgPlantillas[key];
+  // Remove all assignments referencing this plantilla
+  for (const gKey of Object.keys(cfgAsignaciones)) {
+    const grp = cfgAsignaciones[gKey];
+    for (const u of Object.keys(grp)) {
+      if (grp[u] === key) delete grp[u];
+    }
+  }
+  saveEstructura();
+  cfgActivePlantilla = Object.keys(cfgPlantillas)[0] || null;
+  if (!cfgActivePlantilla) { cfgPlantillas[TPL_PREFIX + 'Default'] = []; cfgActivePlantilla = TPL_PREFIX + 'Default'; }
+  renderObraConfig();
+  toast('Plantilla eliminada', 'success');
+}
+
+async function duplicatePlantilla(sourceKey) {
+  const sourceName = sourceKey.replace(TPL_PREFIX, '');
+  const newName = prompt('Nombre de la copia:', sourceName + ' (copia)');
+  if (!newName || !newName.trim()) return;
+  const newKey = TPL_PREFIX + newName.trim();
+  if (cfgPlantillas[newKey]) { toast('Ya existe', 'error'); return; }
+
+  const sourceTareas = cfgPlantillas[sourceKey] || [];
+  const newTareas = [];
+  showLoading();
+  try {
+    for (const t of sourceTareas) {
+      const res = await invokeFunction('obras-service', {
+        action: 'create-tarea', obra_id: cfgObra.id,
+        tipologia: t.tipologia, ambiente: t.ambiente, unidad: newKey,
+        descripcion: t.descripcion || null,
+      });
+      newTareas.push(res.tarea);
+    }
+    cfgPlantillas[newKey] = newTareas;
+    cfgActivePlantilla = newKey;
+    renderObraConfig();
+    toast(`Plantilla duplicada (${newTareas.length} items)`, 'success');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  finally { hideLoading(); }
+}
+
+function renderPlantillaTable(items, plantillaKey) {
+  if (!items || items.length === 0) {
+    return '<div style="padding:12px;color:var(--text-3);font-size:12px">Sin tareas. Agregá manualmente o importá desde quote.</div>';
+  }
+  const byAmb = {};
+  items.forEach(t => {
+    const a = t.ambiente || 'General';
+    if (!byAmb[a]) byAmb[a] = [];
+    byAmb[a].push(t);
+  });
+  let html = '<table class="plantilla-table"><thead><tr><th>Ambiente</th><th>Tipologia</th><th>Descripcion</th><th style="width:36px"></th></tr></thead><tbody>';
+  for (const [amb, tareas] of Object.entries(byAmb)) {
+    for (let i = 0; i < tareas.length; i++) {
+      const t = tareas[i];
+      html += `<tr>
+        ${i === 0 ? `<td rowspan="${tareas.length}" style="font-weight:600;vertical-align:top;background:var(--bg)">${esc(amb)}</td>` : ''}
+        <td><input value="${esc(t.tipologia)}" onchange="updatePlantillaItem('${t.id}','tipologia',this.value)" /></td>
+        <td><input value="${esc(t.descripcion || '')}" onchange="updatePlantillaItem('${t.id}','descripcion',this.value)" /></td>
+        <td><button class="btn btn-danger btn-sm" onclick="deletePlantillaItem('${t.id}','${esc(plantillaKey)}')" style="padding:2px 6px;font-size:11px">&times;</button></td>
+      </tr>`;
+    }
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+async function updatePlantillaItem(tareaId, field, value) {
+  try {
+    await invokeFunction('obras-service', { action: 'update-tarea', tarea_id: tareaId, [field]: value });
+    for (const arr of Object.values(cfgPlantillas)) {
+      const t = arr.find(t => t.id === tareaId);
+      if (t) { t[field] = value; break; }
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deletePlantillaItem(tareaId, plantillaKey) {
+  try {
+    await invokeFunction('obras-service', { action: 'delete-tarea', tarea_id: tareaId });
+    if (cfgPlantillas[plantillaKey]) {
+      cfgPlantillas[plantillaKey] = cfgPlantillas[plantillaKey].filter(t => t.id !== tareaId);
+    }
+    renderObraConfig();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+function addPlantillaRow() {
+  const c = document.getElementById('cfgContent');
+  const existing = document.getElementById('addPlantillaForm');
+  if (existing) { existing.remove(); return; }
+  const form = document.createElement('div');
+  form.id = 'addPlantillaForm';
+  form.style.cssText = 'padding:12px;background:var(--bg);border-radius:8px;margin-top:8px';
+  form.innerHTML = `
+    <div class="form-row">
+      <div class="form-group"><label>Ambiente *</label><input id="np-ambiente" placeholder="Ej: Cocina" /></div>
+      <div class="form-group"><label>Tipologia *</label><input id="np-tipologia" placeholder="Ej: C41" /></div>
+      <div class="form-group"><label>Descripcion</label><input id="np-desc" /></div>
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end">
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('addPlantillaForm').remove()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="btnAddPlantilla" onclick="submitPlantillaRow()">Agregar</button>
+    </div>`;
+  const sections = c.querySelectorAll('.cfg-section');
+  const idx = cfgTipo === 'edificio' ? 1 : 0;
+  if (sections[idx]) sections[idx].appendChild(form);
+}
+
+async function submitPlantillaRow() {
+  const ambiente = document.getElementById('np-ambiente').value.trim();
+  const tipologia = document.getElementById('np-tipologia').value.trim();
+  if (!ambiente || !tipologia) { toast('Ambiente y tipologia son requeridos', 'error'); return; }
+  const btn = document.getElementById('btnAddPlantilla');
+  if (btn) { btn.disabled = true; btn.textContent = 'Agregando...'; }
+  try {
+    const unidad = cfgActivePlantilla || (TPL_PREFIX + 'Default');
+    const res = await invokeFunction('obras-service', {
+      action: 'create-tarea', obra_id: cfgObra.id, tipologia, ambiente,
+      unidad, descripcion: document.getElementById('np-desc').value.trim() || null,
+    });
+    if (!cfgPlantillas[unidad]) cfgPlantillas[unidad] = [];
+    cfgPlantillas[unidad].push(res.tarea);
+    renderObraConfig();
+    toast('Item agregado', 'success');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Agregar'; }
+  }
+}
+
+async function importPlantillaFromQuote() {
+  if (!cfgObra || !cfgObra.quote_id) return;
+  const targetKey = cfgActivePlantilla || (TPL_PREFIX + 'Default');
+  const existing = cfgPlantillas[targetKey] || [];
+  if (existing.length > 0 && !confirm('Ya hay items. Importar agregará más. ¿Continuar?')) return;
+  try {
+    showLoading();
+    const res = await invokeFunction('obras-service', {
+      action: 'batch-create-tareas', obra_id: cfgObra.id, quote_id: cfgObra.quote_id, unidad: targetKey
+    });
+    toast(`${res.created} items importados`, 'success');
+    await loadObraConfig(cfgObra.id);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  finally { hideLoading(); }
+}
+
+// ── Asignación + Generar ──
+function renderAssignGenerateSection() {
+  const names = Object.keys(cfgPlantillas).filter(k => (cfgPlantillas[k] || []).length > 0);
+  if (names.length === 0) return '';
+
+  let html = `<div class="cfg-section">
+    <h4>Asignar plantillas a unidades</h4>
+    <p style="font-size:12px;color:var(--text-3);margin-bottom:12px">
+      Para cada grupo de niveles, elegí qué plantilla usa cada unidad. La asignación se repite en todos los pisos del grupo.
+    </p>`;
+
+  for (let gi = 0; gi < cfgNiveles.length; gi++) {
+    const g = cfgNiveles[gi];
+    const unids = g.unidades || [];
+    if (unids.length === 0) continue;
+    const gKey = String(gi);
+
+    html += `<div style="margin-bottom:14px;padding:10px 12px;background:var(--bg);border-radius:6px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px">${esc(g.nombre || 'Grupo '+(gi+1))} — ${unids.length} unidades</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">`;
+    for (const u of unids) {
+      const current = (cfgAsignaciones[gKey] && cfgAsignaciones[gKey][u]) || '';
+      html += `<div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+        <span style="font-size:11px;font-family:var(--mono);font-weight:600">${esc(u)}</span>
+        <select style="width:auto;min-width:90px;font-size:10px;padding:3px 4px" onchange="setAssignment(${gi},'${esc(u)}',this.value)">
+          <option value="">—</option>
+          ${names.map(n => {
+            const label = n.replace(TPL_PREFIX, '');
+            const sel = current === n ? ' selected' : '';
+            return `<option value="${esc(n)}"${sel}>${esc(label)}</option>`;
+          }).join('')}
+        </select>
+      </div>`;
+    }
+    html += `</div>
+      <div style="margin-top:6px;display:flex;gap:6px">
+        ${names.map(n => `<button class="btn btn-secondary btn-sm" style="font-size:10px;padding:2px 8px" onclick="assignAllInGroup(${gi},'${esc(n)}')">Todas → ${esc(n.replace(TPL_PREFIX,''))}</button>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Generate preview
+  const plan = buildGeneratePlan();
+  const existingSet = new Set(cfgExistingUnits);
+  let totalNew = 0, totalTareas = 0;
+  for (const { plantillaKey, unidades } of plan) {
+    const tpl = cfgPlantillas[plantillaKey] || [];
+    const newU = unidades.filter(u => !existingSet.has(u.unidad));
+    totalNew += newU.length;
+    totalTareas += newU.length * tpl.length;
+  }
+
+  html += `<div class="gen-summary" id="genSummary">
+    <span>${totalNew > 0 ? `${totalNew} unidades nuevas → ${totalTareas} tareas a crear` : 'No hay unidades nuevas (asigná plantillas arriba)'}</span>
+    <button class="btn btn-primary btn-sm" id="btnGenerate" ${totalNew===0?'disabled':''} onclick="executeGenerateMulti()">Generar tareas</button>
+  </div></div>`;
+
+  return html;
+}
+
+function setAssignment(groupIdx, unitNum, plantillaKey) {
+  const gKey = String(groupIdx);
+  if (!cfgAsignaciones[gKey]) cfgAsignaciones[gKey] = {};
+  if (plantillaKey) {
+    cfgAsignaciones[gKey][unitNum] = plantillaKey;
+  } else {
+    delete cfgAsignaciones[gKey][unitNum];
+  }
+  saveEstructura();
+  renderObraConfig();
+}
+
+function assignAllInGroup(groupIdx, plantillaKey) {
+  const g = cfgNiveles[groupIdx];
+  if (!g) return;
+  const gKey = String(groupIdx);
+  cfgAsignaciones[gKey] = {};
+  for (const u of (g.unidades || [])) {
+    cfgAsignaciones[gKey][u] = plantillaKey;
+  }
+  saveEstructura();
+  renderObraConfig();
+}
+
+function buildGeneratePlan() {
+  // Returns: [{ plantillaKey, unidades: [{unidad, nivel}] }]
+  const existingSet = new Set(cfgExistingUnits);
+  const byPlantilla = {};
+
+  for (let gi = 0; gi < cfgNiveles.length; gi++) {
+    const g = cfgNiveles[gi];
+    const gKey = String(gi);
+    const assigns = cfgAsignaciones[gKey] || {};
+    const nivRange = parseNivelRange(g.nombre);
+
+    for (const u of (g.unidades || [])) {
+      const pKey = assigns[u];
+      if (!pKey) continue;
+      if (!byPlantilla[pKey]) byPlantilla[pKey] = [];
+      for (const niv of nivRange) {
+        const unitCode = `${niv}${u}`;
+        if (!existingSet.has(unitCode)) {
+          byPlantilla[pKey].push({ unidad: unitCode, nivel: niv });
+        }
+      }
+    }
+  }
+
+  return Object.entries(byPlantilla).map(([plantillaKey, unidades]) => ({ plantillaKey, unidades }));
+}
+
+async function executeGenerateMulti() {
+  const plan = buildGeneratePlan();
+  if (plan.length === 0) { toast('No hay unidades para generar', 'error'); return; }
+
+  const btn = document.getElementById('btnGenerate');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generando...'; }
+
+  let totalCreated = 0;
+  try {
+    showLoading();
+    for (const { plantillaKey, unidades } of plan) {
+      if (unidades.length === 0) continue;
+      const res = await invokeFunction('obras-service', {
+        action: 'generate-unidades', obra_id: cfgObra.id,
+        source_unidad: plantillaKey, unidades, delete_plantilla: false
+      });
+      totalCreated += res.created || 0;
+    }
+    toast(`${totalCreated} tareas creadas`, 'success');
+    await loadObraConfig(cfgObra.id);
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Generar tareas'; }
+  } finally { hideLoading(); }
+}
+
+// ── Estructura helpers ──
+function renderNivelRow(n, idx) {
+  return `<div class="nivel-row">
+    <input value="${esc(n.nombre || '')}" placeholder="Ej: 4-12" onchange="updateNivel(${idx},'nombre',this.value)" />
+    <input type="number" value="${n.unidades ? n.unidades.length : 0}" min="1" max="50" placeholder="Cant."
+      onchange="autoGenerateUnidades(${idx}, parseInt(this.value))" title="Cantidad de unidades" />
+    <input value="${(n.unidades||[]).join(', ')}" placeholder="01, 02, 03, ..."
+      onchange="updateNivel(${idx},'unidades_str',this.value)" style="font-family:var(--mono);font-size:11px" />
+    <button class="btn btn-danger btn-sm" onclick="removeNivelGroup(${idx})" style="padding:4px 8px">&times;</button>
+  </div>`;
+}
+
+function renderNivelPreview() {
+  const allUnits = expandNiveles();
+  if (allUnits.length === 0) return '';
+  const existingSet = new Set(cfgExistingUnits);
+  return `<div class="nivel-preview">
+    <div style="width:100%;font-size:11px;color:var(--text-3);margin-bottom:4px">Preview: ${allUnits.length} unidades</div>
+    ${allUnits.map(u => {
+      const cls = existingSet.has(u) ? 'np-unit has-tareas' : 'np-unit';
+      return `<span class="${cls}">${esc(u)}</span>`;
+    }).join('')}
+  </div>`;
+}
+
+function expandNiveles() {
+  const units = [];
+  for (const n of cfgNiveles) {
+    const nivRange = parseNivelRange(n.nombre);
+    for (const niv of nivRange) {
+      for (const u of (n.unidades || [])) units.push(`${niv}${u}`);
+    }
+  }
+  return units;
+}
+
+function parseNivelRange(nombre) {
+  if (!nombre) return [''];
+  const cleaned = nombre.replace(/\s/g, '');
+  const rangeMatch = cleaned.match(/^N?(\d+)\s*[-–]\s*N?(\d+)$/i);
+  if (rangeMatch) {
+    const from = parseInt(rangeMatch[1]), to = parseInt(rangeMatch[2]);
+    const result = [];
+    for (let i = from; i <= to; i++) result.push(String(i));
+    return result;
+  }
+  const parts = cleaned.split(',').map(s => s.replace(/^N/i, '').trim()).filter(Boolean);
+  return parts.length > 0 ? parts : [cleaned];
+}
+
+function updateNivel(idx, field, value) {
+  if (field === 'nombre') cfgNiveles[idx].nombre = value;
+  else if (field === 'unidades_str') cfgNiveles[idx].unidades = value.split(',').map(s => s.trim()).filter(Boolean);
+  saveEstructura();
+  renderObraConfig();
+}
+
+function autoGenerateUnidades(idx, count) {
+  if (!count || count < 1) return;
+  const unidades = [];
+  for (let i = 1; i <= count; i++) unidades.push(String(i).padStart(2, '0'));
+  cfgNiveles[idx].unidades = unidades;
+  saveEstructura();
+  renderObraConfig();
+}
+
+function addNivelGroup() { cfgNiveles.push({ nombre: '', unidades: [] }); saveEstructura(); renderObraConfig(); }
+function removeNivelGroup(idx) { cfgNiveles.splice(idx, 1); saveEstructura(); renderObraConfig(); }
+
+async function saveEstructura() {
+  if (!cfgObra) return;
+  try {
+    await sbMutate('obras', 'PATCH', {
+      estructura: { niveles: cfgNiveles, asignaciones: cfgAsignaciones }
+    }, `id=eq.${cfgObra.id}`);
+  } catch(e) { console.warn('Save estructura error:', e); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TAREAS (detalle modal)
+// ═══════════════════════════════════════════════════════════════
+const TAREA_ESTADOS = ['pendiente','material_en_unidad','en_progreso','completada','observada','bloqueada'];
+const TAREA_ESTADO_LABELS = { pendiente:'Pendiente', material_en_unidad:'Material en unidad', en_progreso:'En progreso', completada:'Completada', observada:'Observada', bloqueada:'Bloqueada' };
+let currentObraTareas = { obraId: null, obra: null, tareas: [], grouped: {} };
+let expandedTareaId = null;
+
+async function loadEmpleados() {
+  if (empleadosCache.length) return;
+  try {
+    empleadosCache = await sbQuery('employees', 'activo=eq.true&select=id,nombre,apellido,rol,especialidad,categoria&order=nombre');
+  } catch(e) { console.warn('Empleados cache error:', e); }
+}
+function getInstaladores() {
+  return empleadosCache.filter(e => e.categoria === 'instalacion');
+}
+
+async function loadDetalleTareas(obraId, obra) {
+  // Ensure we have quote_id (may not be in the kanban view)
+  if (obra && !obra.quote_id) {
+    try {
+      const [obraFull] = await sbQuery('obras', `id=eq.${obraId}&select=quote_id`);
+      if (obraFull) obra.quote_id = obraFull.quote_id;
+    } catch(_) {}
+  }
+  currentObraTareas = { obraId, obra, tareas: [], grouped: {} };
+  try {
+    const res = await invokeFunction('obras-service', { action: 'list-tareas', obra_id: obraId });
+    currentObraTareas.tareas = res.tareas || [];
+    currentObraTareas.grouped = res.grouped || {};
+    // Update tab badge
+    const tabBtn = document.getElementById('dtab-tareas');
+    if (tabBtn) tabBtn.textContent = `Tareas (${res.count || 0})`;
+    renderTareasPanel();
+  } catch(e) {
+    document.getElementById('tareasContainer').innerHTML = `<div class="empty">Error cargando tareas: ${esc(e.message)}</div>`;
+  }
+  loadEmpleados();
+}
+
+function renderTareasPanel() {
+  const { tareas, grouped, obraId, obra } = currentObraTareas;
+  const container = document.getElementById('tareasContainer');
+
+  if (tareas.length === 0) {
+    const hasQuote = obra && obra.quote_id;
+    container.innerHTML = `
+      <div class="empty" style="padding:24px">
+        <p style="margin-bottom:12px">Sin tareas creadas para esta obra</p>
+        ${hasQuote ? `<button class="btn btn-primary btn-sm" id="btnBatchTareas" onclick="this.disabled=true;this.textContent='Creando...';batchCreateFromQuote('${obraId}','${obra.quote_id}')">Crear tareas desde quote</button>` : ''}
+        <button class="btn btn-secondary btn-sm" onclick="showAddTarea('${obraId}')" style="margin-left:6px">+ Agregar tarea manual</button>
+      </div>`;
+    return;
+  }
+
+  // Stats
+  const total = tareas.length;
+  const completadas = tareas.filter(t => t.estado === 'completada').length;
+  const enProgreso = tareas.filter(t => t.estado === 'en_progreso').length;
+  const bloqueadas = tareas.filter(t => t.estado === 'bloqueada').length;
+  const prom = total > 0 ? Math.round(tareas.reduce((s,t) => s + (t.progreso_pct||0), 0) / total) : 0;
+
+  let html = `
+    <div class="tareas-stats">
+      <div class="tarea-stat"><span class="ts-val">${total}</span><span class="ts-lbl">Total</span></div>
+      <div class="tarea-stat" style="color:var(--success)"><span class="ts-val" style="color:var(--success)">${completadas}</span><span class="ts-lbl">Completadas</span></div>
+      <div class="tarea-stat"><span class="ts-val" style="color:var(--accent)">${enProgreso}</span><span class="ts-lbl">En progreso</span></div>
+      ${bloqueadas > 0 ? `<div class="tarea-stat"><span class="ts-val" style="color:var(--danger)">${bloqueadas}</span><span class="ts-lbl">Bloqueadas</span></div>` : ''}
+      <div class="tarea-stat"><span class="ts-val">${prom}%</span><span class="ts-lbl">Progreso</span></div>
+    </div>
+    <div class="tareas-toolbar">
+      <button class="btn btn-secondary btn-sm" onclick="showAddTarea('${obraId}')">+ Tarea</button>
+      <button class="btn btn-secondary btn-sm" onclick="showGenerateUnidades('${obraId}')">Generar unidades</button>
+      <select onchange="filterTareasEstado(this.value)" style="margin-left:auto">
+        <option value="">Todos los estados</option>
+        ${TAREA_ESTADOS.map(e => '<option value="'+e+'">'+TAREA_ESTADO_LABELS[e]+'</option>').join('')}
+      </select>
+    </div>`;
+
+  // Render grouped: nivel → unidad → ambiente
+  const niveles = Object.keys(grouped).sort((a,b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    if (!isNaN(na)) return -1;
+    if (!isNaN(nb)) return 1;
+    return a.localeCompare(b);
+  });
+  const skipNivel = niveles.length <= 1 && niveles[0] === '(sin nivel)';
+
+  for (const nivel of niveles) {
+    const unidadesMap = grouped[nivel];
+    const allNivelTareas = Object.values(unidadesMap).flatMap(uMap => Object.values(uMap).flat());
+    const nDone = allNivelTareas.filter(t => t.estado === 'completada').length;
+    const nivelLabel = /^\d+$/.test(nivel) ? 'Nivel ' + nivel : nivel;
+
+    if (!skipNivel) {
+      html += `<div style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--accent-light);border-radius:8px;cursor:pointer;font-weight:700;font-size:14px;margin-bottom:6px" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'':'none'">
+          <span>${esc(nivelLabel)}</span>
+          <span style="font-size:11px;font-weight:400;color:var(--text-3)">${nDone}/${allNivelTareas.length} completadas</span>
+        </div>
+        <div>`;
+    }
+
+    const unidades = Object.keys(unidadesMap);
+    for (const unidad of unidades) {
+      const ambientes = unidadesMap[unidad];
+      const ambKeys = Object.keys(ambientes);
+      const uTareas = ambKeys.flatMap(a => ambientes[a]);
+      const uDone = uTareas.filter(t => t.estado === 'completada').length;
+      html += `<div class="tarea-unidad-group" data-unidad="${esc(unidad)}">
+        <div class="tarea-unidad-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'':'none'">
+          <span>${esc(unidad)}</span>
+          <span class="tu-badge">${uDone}/${uTareas.length} completadas</span>
+        </div>
+        <div>`;
+      for (const ambiente of ambKeys) {
+        const aTareas = ambientes[ambiente];
+        html += `<div class="tarea-ambiente-group">
+          <div class="tarea-ambiente-title">${esc(ambiente)} <span style="font-size:10px;color:var(--text-3)">(${aTareas.length})</span></div>`;
+        for (const t of aTareas) {
+          html += renderTareaRow(t, 'modal');
+        }
+        html += '</div>';
+      }
+      html += '</div></div>';
+    }
+
+    if (!skipNivel) html += '</div></div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function getTareaOps(t) {
+  return (t.operarios || []).map(o => o.employee || o).filter(o => o && o.id);
+}
+function getTareaOpIds(t) {
+  return (t.operarios || []).map(o => o.operario_id).filter(Boolean);
+}
+
+function renderTareaRow(t, ctx) {
+  ctx = ctx || 'modal';
+  const estadoClass = 'te-' + t.estado;
+  const ops = getTareaOps(t);
+  let opsHtml;
+  if (ops.length === 0) {
+    opsHtml = '<span class="tarea-operarios"><span class="to-empty">—</span></span>';
+  } else {
+    const avatars = ops.slice(0, 3).map(o => {
+      const initial = (o.nombre || '?')[0];
+      const title = `${o.nombre} ${o.apellido || ''}`.trim();
+      return `<span class="to-avatar" title="${esc(title)}">${initial}</span>`;
+    }).join('');
+    const more = ops.length > 3 ? `<span class="to-more">+${ops.length - 3}</span>` : '';
+    opsHtml = `<span class="tarea-operarios">${avatars}${more}</span>`;
+  }
+  const isExpanded = (ctx === 'tab' ? tareasTabExpandedTarea : expandedTareaId) === t.id;
+  const completadaClass = t.estado === 'completada' ? ' tarea-completada' : '';
+
+  const checkHtml = ctx === 'tab' ? `<input type="checkbox" class="tt-check" ${tareasTabSelected.has(t.id)?'checked':''} onclick="event.stopPropagation();toggleTareasTabSelect('${t.id}',this.checked)">` : '';
+
+  let row = `<div class="tarea-row${completadaClass}" onclick="tareasContext='${ctx}';toggleTareaDetail('${t.id}')" data-tarea-id="${t.id}" data-estado="${t.estado}">
+    ${checkHtml}<span class="tr-tipo">${esc(t.tipologia)}</span>
+    <span class="tr-desc">${esc(t.descripcion || '')}</span>
+    ${opsHtml}
+    <div class="tarea-progress-mini"><div class="tp-fill" style="width:${t.progreso_pct||0}%;background:${t.progreso_pct>=100?'var(--success)':'var(--accent)'}"></div></div>
+    <span class="tarea-estado ${estadoClass}">${TAREA_ESTADO_LABELS[t.estado]}</span>
+  </div>`;
+
+  if (isExpanded) {
+    row += renderTareaDetailPanel(t, ctx);
+  }
+  return row;
+}
+
+function renderTareaDetailPanel(t, ctx) {
+  ctx = ctx || 'modal';
+  const C = `tareasContext='${ctx}';`;
+  const ops = getTareaOps(t);
+  const assignedIds = new Set(getTareaOpIds(t));
+  const availableEmps = getInstaladores().filter(e => !assignedIds.has(e.id));
+
+  const opsChips = ops.map(o => {
+    const name = `${o.nombre} ${(o.apellido||'')[0]||''}.`;
+    return `<span class="op-chip">${esc(name)}<button class="op-chip-x" onclick="event.stopPropagation();${C}removeTareaOperario('${t.id}','${o.id}')">&times;</button></span>`;
+  }).join('');
+
+  const addSelect = `<select class="op-add-select" onchange="if(this.value){${C}addTareaOperario('${t.id}',this.value);this.value=''}">
+    <option value="">+ Agregar</option>
+    ${availableEmps.map(e => `<option value="${e.id}">${e.nombre} ${e.apellido||''}</option>`).join('')}
+  </select>`;
+
+  // Count matching tareas for bulk actions
+  const allTareas = getCurrentTareasData().tareas || [];
+  const matchCount = allTareas.filter(tt => tt.tipologia === t.tipologia && tt.id !== t.id && !tt.unidad.startsWith('TPL:')).length;
+
+  const bulkBar = ops.length > 0 && matchCount > 0 ? `<div class="bulk-assign-bar">
+    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();${C}bulkAssignTipologia('${t.id}','${esc(t.tipologia)}')">
+      Aplicar equipo a todos los "${esc(t.tipologia)}" (${matchCount + 1})
+    </button>
+    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();${C}bulkAssignSelectUnidades('${t.id}','${esc(t.tipologia)}')">
+      Aplicar a unidades...
+    </button>
+  </div>` : '';
+
+  return `<div class="tarea-detail-panel" id="tdp-${t.id}">
+    <div class="form-row">
+      <div class="form-group"><label>Estado</label>
+        <select onchange="${C}updateTareaField('${t.id}','estado',this.value)">
+          ${TAREA_ESTADOS.map(e => `<option value="${e}"${t.estado===e?' selected':''}>${TAREA_ESTADO_LABELS[e]}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Progreso %</label>
+        <input type="number" min="0" max="100" value="${t.progreso_pct||0}" onchange="${C}updateTareaField('${t.id}','progreso_pct',parseInt(this.value))" />
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:10px"><label>Operarios</label>
+      <div class="ops-container">
+        ${opsChips || '<span style="font-size:11px;color:var(--text-3)">Sin asignar</span>'}
+        ${addSelect}
+      </div>
+      ${bulkBar}
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Inicio plan</label><input type="date" value="${t.fecha_inicio_plan||''}" onchange="${C}updateTareaField('${t.id}','fecha_inicio_plan',this.value||null)" /></div>
+      <div class="form-group"><label>Fin plan</label><input type="date" value="${t.fecha_fin_plan||''}" onchange="${C}updateTareaField('${t.id}','fecha_fin_plan',this.value||null)" /></div>
+    </div>
+    <div class="form-group" style="margin-bottom:8px"><label>Notas</label>
+      <textarea rows="2" onchange="${C}updateTareaField('${t.id}','notas',this.value||null)">${esc(t.notas||'')}</textarea>
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end">
+      ${t.fecha_inicio_real ? `<span style="font-size:11px;color:var(--text-3)">Inicio real: ${t.fecha_inicio_real}</span>` : ''}
+      ${t.fecha_fin_real ? `<span style="font-size:11px;color:var(--text-3)">Fin real: ${t.fecha_fin_real}</span>` : ''}
+      <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();${C}deleteTarea('${t.id}')">Eliminar</button>
+    </div>
+  </div>`;
+}
+
+function toggleTareaDetail(tareaId) {
+  if (tareasContext === 'tab') {
+    tareasTabExpandedTarea = tareasTabExpandedTarea === tareaId ? null : tareaId;
+    renderTareasTab();
+  } else {
+    expandedTareaId = expandedTareaId === tareaId ? null : tareaId;
+    renderTareasPanel();
+  }
+}
+
+let _updatingTarea = false;
+async function updateTareaField(tareaId, field, value) {
+  if (_updatingTarea) return;
+  _updatingTarea = true;
+  try {
+    await invokeFunction('obras-service', { action: 'update-tarea', tarea_id: tareaId, [field]: value });
+    await reloadCurrentTareas();
+    toast('Tarea actualizada', 'success');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  } finally {
+    _updatingTarea = false;
+  }
+}
+
+async function deleteTarea(tareaId) {
+  if (!confirm('¿Eliminar esta tarea?')) return;
+  try {
+    await invokeFunction('obras-service', { action: 'delete-tarea', tarea_id: tareaId });
+    if (tareasContext === 'tab') tareasTabExpandedTarea = null;
+    else expandedTareaId = null;
+    await reloadCurrentTareas();
+    toast('Tarea eliminada', 'success');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+// ── Multi-operario management (context-aware) ──
+async function addTareaOperario(tareaId, operarioId) {
+  const data = getCurrentTareasData();
+  const t = (data.tareas || []).find(x => x.id === tareaId);
+  if (!t) return;
+  const currentIds = getTareaOpIds(t);
+  if (currentIds.includes(parseInt(operarioId))) return;
+  try {
+    await invokeFunction('obras-service', { action: 'set-tarea-operarios', tarea_id: tareaId, operario_ids: [...currentIds, parseInt(operarioId)] });
+    await reloadCurrentTareas();
+    toast('Operario agregado', 'success');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function removeTareaOperario(tareaId, operarioId) {
+  const data = getCurrentTareasData();
+  const t = (data.tareas || []).find(x => x.id === tareaId);
+  if (!t) return;
+  const newIds = getTareaOpIds(t).filter(id => id !== parseInt(operarioId));
+  try {
+    await invokeFunction('obras-service', { action: 'set-tarea-operarios', tarea_id: tareaId, operario_ids: newIds });
+    await reloadCurrentTareas();
+    toast('Operario removido', 'success');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function bulkAssignTipologia(tareaId, tipologia) {
+  const data = getCurrentTareasData();
+  const t = (data.tareas || []).find(x => x.id === tareaId);
+  if (!t) return;
+  const opIds = getTareaOpIds(t);
+  if (opIds.length === 0) { toast('Primero asigná operarios a esta tarea', 'error'); return; }
+  const opNames = getTareaOps(t).map(o => o.nombre).join(', ');
+  const matching = (data.tareas || []).filter(tt => tt.tipologia === tipologia && !tt.unidad.startsWith('TPL:'));
+  if (!confirm(`¿Asignar [${opNames}] a ${matching.length} tareas de "${tipologia}"?`)) return;
+  try {
+    showLoading();
+    await invokeFunction('obras-service', { action: 'bulk-assign-operarios', obra_id: data.obraId, operario_ids: opIds, tipologia });
+    await reloadCurrentTareas();
+    toast(`Equipo asignado a ${matching.length} tareas`, 'success');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  finally { hideLoading(); }
+}
+
+async function bulkAssignSelectUnidades(tareaId, tipologia) {
+  const data = getCurrentTareasData();
+  const t = (data.tareas || []).find(x => x.id === tareaId);
+  if (!t) return;
+  const opIds = getTareaOpIds(t);
+  if (opIds.length === 0) { toast('Primero asigná operarios a esta tarea', 'error'); return; }
+
+  const allTareas = data.tareas || [];
+  const unidades = [...new Set(allTareas.filter(tt => tt.tipologia === tipologia && !tt.unidad.startsWith('TPL:') && tt.unidad).map(tt => tt.unidad))].sort();
+  if (unidades.length === 0) { toast('No hay unidades con esa tipología', 'error'); return; }
+
+  const panel = document.getElementById('tdp-' + tareaId);
+  if (!panel) return;
+  const existingPicker = document.getElementById('unitPickerBulk');
+  if (existingPicker) { existingPicker.remove(); return; }
+
+  const currentUnit = t.unidad || '';
+  const picker = document.createElement('div');
+  picker.id = 'unitPickerBulk';
+  picker.className = 'unit-picker-overlay';
+  picker.innerHTML = `
+    <div style="font-size:12px;font-weight:600;margin-bottom:6px">Seleccioná unidades para aplicar:</div>
+    <div style="margin-bottom:6px">
+      <label style="font-size:11px;cursor:pointer"><input type="checkbox" id="upCheckAll" onchange="document.querySelectorAll('.up-check').forEach(c=>c.checked=this.checked)"> Seleccionar todas</label>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;max-height:200px;overflow-y:auto">
+      ${unidades.map(u => {
+        const isCurrent = u === currentUnit;
+        return `<label style="display:flex;align-items:center;gap:3px;font-size:11px;padding:3px 6px;background:var(--bg);border-radius:4px;cursor:pointer${isCurrent ? ';border:1px solid var(--accent)' : ''}">
+        <input type="checkbox" class="up-check" value="${esc(u)}"${isCurrent ? ' checked disabled' : ''} /> ${esc(u)}
+      </label>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end">
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('unitPickerBulk').remove()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="executeBulkUnidades('${tareaId}','${esc(tipologia)}')">Aplicar</button>
+    </div>`;
+  panel.appendChild(picker);
+  picker.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function executeBulkUnidades(tareaId, tipologia) {
+  const data = getCurrentTareasData();
+  const t = (data.tareas || []).find(x => x.id === tareaId);
+  if (!t) return;
+  const opIds = getTareaOpIds(t);
+  const checks = document.querySelectorAll('#unitPickerBulk .up-check:checked');
+  const selectedUnidades = [...checks].map(c => c.value);
+  if (selectedUnidades.length === 0) { toast('Seleccioná al menos una unidad', 'error'); return; }
+  try {
+    showLoading();
+    await invokeFunction('obras-service', { action: 'bulk-assign-operarios', obra_id: data.obraId, operario_ids: opIds, tipologia, unidades: selectedUnidades });
+    await reloadCurrentTareas();
+    toast(`Equipo asignado en ${selectedUnidades.length} unidades`, 'success');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  finally { hideLoading(); }
+}
+
+function filterTareasEstado(estado) {
+  const rows = document.querySelectorAll('.tarea-row');
+  rows.forEach(r => {
+    r.parentElement.style.display = (!estado || r.dataset.estado === estado) ? '' : 'none';
+  });
+}
+
+async function batchCreateFromQuote(obraId, quoteId) {
+  try {
+    showLoading();
+    const res = await invokeFunction('obras-service', { action: 'batch-create-tareas', obra_id: obraId, quote_id: quoteId });
+    toast(`${res.created} tareas creadas desde quote`, 'success');
+    await loadDetalleTareas(obraId, currentObraTareas.obra);
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+function showAddTarea(obraId) {
+  const container = document.getElementById('tareasContainer');
+  const existing = document.getElementById('addTareaForm');
+  if (existing) { existing.remove(); return; }
+
+  const form = document.createElement('div');
+  form.id = 'addTareaForm';
+  form.className = 'tarea-detail-panel';
+  form.style.marginBottom = '14px';
+  form.innerHTML = `
+    <strong style="font-size:13px">Nueva tarea</strong>
+    <div class="form-row" style="margin-top:8px">
+      <div class="form-group"><label>Tipología *</label><input id="nt-tipologia" placeholder="Ej: Mueble bajo+alto" /></div>
+      <div class="form-group"><label>Ambiente *</label><input id="nt-ambiente" placeholder="Ej: Cocina" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Unidad</label><input id="nt-unidad" placeholder="Ej: 1102" /></div>
+      <div class="form-group"><label>Nivel</label><input id="nt-nivel" placeholder="Ej: Nivel 11" /></div>
+    </div>
+    <div class="form-group" style="margin-bottom:8px"><label>Descripción</label><input id="nt-desc" /></div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('addTareaForm').remove()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="btnSubmitTarea" onclick="submitAddTarea('${obraId}')">Crear tarea</button>
+    </div>`;
+  container.insertBefore(form, container.firstChild);
+}
+
+async function submitAddTarea(obraId) {
+  const tipologia = document.getElementById('nt-tipologia').value.trim();
+  const ambiente = document.getElementById('nt-ambiente').value.trim();
+  if (!tipologia || !ambiente) { toast('Tipología y ambiente son requeridos', 'error'); return; }
+
+  const btn = document.getElementById('btnSubmitTarea');
+  if (btn) { btn.disabled = true; btn.textContent = 'Creando...'; }
+
+  try {
+    await invokeFunction('obras-service', {
+      action: 'create-tarea',
+      obra_id: obraId,
+      tipologia,
+      ambiente,
+      unidad: document.getElementById('nt-unidad').value.trim() || '',
+      nivel: document.getElementById('nt-nivel').value.trim() || null,
+      descripcion: document.getElementById('nt-desc').value.trim() || null,
+    });
+    expandedTareaId = null;
+    await loadDetalleTareas(obraId, currentObraTareas.obra);
+    toast('Tarea creada', 'success');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Crear tarea'; }
+  }
+}
+
+function showGenerateUnidades(obraId) {
+  const container = document.getElementById('tareasContainer');
+  const existing = document.getElementById('genUnidadesForm');
+  if (existing) { existing.remove(); return; }
+
+  const form = document.createElement('div');
+  form.id = 'genUnidadesForm';
+  form.className = 'unidades-form';
+  form.innerHTML = `
+    <strong style="font-size:13px">Multiplicar tareas por unidad (edificios/PH)</strong>
+    <p style="font-size:11px;color:var(--text-3);margin:4px 0 10px">Las tareas existentes se copiarán como plantilla para cada unidad que agregues. Ideal para edificios con N departamentos iguales.</p>
+    <div id="unidadesRows">
+      <div class="uf-row"><input placeholder="Unidad (ej: 1102)" class="uf-unidad" /><input placeholder="Nivel (ej: Nivel 11)" class="uf-nivel" /><button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px">&times;</button></div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm" onclick="addUnidadRow()">+ Unidad</button>
+      <label style="display:flex;align-items:center;gap:4px;margin-left:auto;font-size:11px;color:var(--text-2)" title="Si marcás esto, las tareas sin unidad asignada (las plantilla) se eliminan después de copiarlas"><input type="checkbox" id="uf-deletePlantilla" checked /> Eliminar tareas plantilla al generar</label>
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:10px">
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('genUnidadesForm').remove()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" id="btnGenUnidades" onclick="submitGenerateUnidades('${obraId}')">Generar</button>
+    </div>`;
+  container.appendChild(form);
+}
+
+function addUnidadRow() {
+  const rows = document.getElementById('unidadesRows');
+  const row = document.createElement('div');
+  row.className = 'uf-row';
+  row.innerHTML = '<input placeholder="Unidad" class="uf-unidad" /><input placeholder="Nivel" class="uf-nivel" /><button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:4px 8px">&times;</button>';
+  rows.appendChild(row);
+}
+
+async function submitGenerateUnidades(obraId) {
+  const rows = document.querySelectorAll('#unidadesRows .uf-row');
+  const unidades = [];
+  rows.forEach(r => {
+    const u = r.querySelector('.uf-unidad').value.trim();
+    const n = r.querySelector('.uf-nivel').value.trim();
+    if (u) unidades.push({ unidad: u, nivel: n || null });
+  });
+  if (unidades.length === 0) { toast('Agregá al menos una unidad', 'error'); return; }
+
+  const btn = document.getElementById('btnGenUnidades');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generando...'; }
+
+  try {
+    showLoading();
+    const deletePlantilla = document.getElementById('uf-deletePlantilla').checked;
+    const res = await invokeFunction('obras-service', {
+      action: 'generate-unidades', obra_id: obraId, unidades, delete_plantilla: deletePlantilla
+    });
+    toast(`${res.created} tareas generadas para ${res.unidades} unidades`, 'success');
+    expandedTareaId = null;
+    await loadDetalleTareas(obraId, currentObraTareas.obra);
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Generar'; }
+  } finally {
+    hideLoading();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1081,6 +3415,11 @@ async function crearObra() {
             await sbMutate('obra_checklist_items', 'POST', items);
           }
         }
+        // Also create tareas from quote items
+        try {
+          await invokeFunction('obras-service', { action: 'batch-create-tareas', obra_id: obra.id, quote_id: quoteId });
+        } catch(te) { console.warn('Tareas auto-create error:', te); }
+
       } catch (e) {
         console.error('Error creating servicios/checklists:', e);
         toast('Obra creada, pero error en servicios/checklists', 'error');

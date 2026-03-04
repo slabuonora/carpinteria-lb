@@ -64,6 +64,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--tx); 
 .kpi.green::after { background:linear-gradient(90deg,var(--green),var(--teal)); }
 .kpi.red::after { background:linear-gradient(90deg,var(--red),var(--pink)); }
 .kpi.amber::after { background:linear-gradient(90deg,var(--amber),#fb923c); }
+.kpi.purple::after { background:linear-gradient(90deg,var(--purple),var(--pink)); }
 .kpi-label { font-size:12px; color:var(--tx3); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
 .kpi-value { font-size:28px; font-weight:700; line-height:1.1; }
 .kpi-sub { font-size:12px; color:var(--tx3); margin-top:6px; }
@@ -181,6 +182,7 @@ body.tips-off .tip-icon { display:none !important; }
     <button class="btn small" onclick="runIntelligence()">🧠 Analizar</button>
     <button class="btn small" onclick="takeSnapshot()">📸 Snapshot</button>
     <button class="help-toggle" id="helpBtn" onclick="toggleHelp()">❓ Ayuda ON</button>
+    <a href="index.html" class="btn small" style="text-decoration:none;color:#94a3b8">← Inicio</a>
   </div>
 </div>
 
@@ -191,6 +193,8 @@ body.tips-off .tip-icon { display:none !important; }
   <div class="tab" onclick="showTab('forecast')">Forecast</div>
   <div class="tab" onclick="showTab('alerts')">Alertas</div>
   <div class="tab" onclick="showTab('concentration')">Concentración</div>
+  <div class="tab" onclick="showTab('catalogos')">Catálogos Zeta</div>
+  <div class="tab" onclick="showTab('quickbooks')">QuickBooks</div>
   <div class="tab" onclick="showTab('audit')" style="color:var(--amber)">🔍 Auditoría</div>
 </div>
 
@@ -292,6 +296,138 @@ body.tips-off .tip-icon { display:none !important; }
     </div>
   </div>
 
+  <!-- CATALOGOS ZETA -->
+  <div class="section" id="sec-catalogos">
+    <div class="grid g4" id="catKpis" style="margin-bottom:20px;"></div>
+    <div class="grid g2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-head">
+          <h3>Stock Actual</h3>
+          <span class="badge" id="stockCount" style="background:rgba(34,197,94,0.15);color:var(--green);"></span>
+        </div>
+        <div id="stockTable" style="overflow-x:auto;max-height:400px;overflow-y:auto;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h3>Cuentas Bancarias</h3>
+          <span class="badge" id="bankCount" style="background:rgba(56,189,248,0.15);color:var(--acc);"></span>
+        </div>
+        <div id="bankTable" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-head">
+          <h3>Artículos / Productos</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="artSearch" placeholder="Buscar..." style="padding:5px 10px;border-radius:6px;border:1px solid var(--bg4);background:var(--bg3);color:var(--tx);font-size:12px;width:160px;" oninput="filterArticulos()">
+            <span class="badge" id="artCount" style="background:rgba(167,139,250,0.15);color:var(--purple);"></span>
+          </div>
+        </div>
+        <div id="artTable" style="overflow-x:auto;max-height:500px;overflow-y:auto;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h3>Proveedores</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="provSearch" placeholder="Buscar..." style="padding:5px 10px;border-radius:6px;border:1px solid var(--bg4);background:var(--bg3);color:var(--tx);font-size:12px;width:160px;" oninput="filterProveedores()">
+            <span class="badge" id="provCount" style="background:rgba(244,114,182,0.15);color:var(--pink);"></span>
+          </div>
+        </div>
+        <div id="provTable" style="overflow-x:auto;max-height:500px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="grid g3">
+      <div class="card">
+        <div class="card-head"><h3>Plan de Cuentas</h3><span class="badge" id="pcCount" style="background:rgba(45,212,191,0.15);color:var(--teal);"></span></div>
+        <div id="pcTable" style="overflow-x:auto;max-height:400px;overflow-y:auto;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Centros de Costo</h3><span class="badge" id="ccCount" style="background:rgba(245,158,11,0.15);color:var(--amber);"></span></div>
+        <div id="ccTable" style="overflow-x:auto;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Comprobantes</h3><span class="badge" id="compCount" style="background:rgba(56,189,248,0.15);color:var(--acc);"></span></div>
+        <div id="compTable" style="overflow-x:auto;max-height:400px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICKBOOKS -->
+  <div class="section" id="sec-quickbooks">
+    <div class="grid g4" id="qbKpis" style="margin-bottom:20px;"></div>
+    <div class="grid g2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-head">
+          <h3>Plan de Cuentas (QB)</h3>
+          <span class="badge" id="qbAccCount" style="background:rgba(56,189,248,0.15);color:var(--acc);"></span>
+        </div>
+        <div id="qbAccTable" style="overflow-x:auto;max-height:400px;overflow-y:auto;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h3>Productos / Servicios</h3>
+          <span class="badge" id="qbItemsCount" style="background:rgba(167,139,250,0.15);color:var(--purple);"></span>
+        </div>
+        <div id="qbItemsTable" style="overflow-x:auto;max-height:400px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-head">
+          <h3>Clientes QB</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="qbCustSearch" placeholder="Buscar..." style="padding:5px 10px;border-radius:6px;border:1px solid var(--bg4);background:var(--bg3);color:var(--tx);font-size:12px;width:160px;" oninput="filterQBCustomers()">
+            <span class="badge" id="qbCustCount" style="background:rgba(34,197,94,0.15);color:var(--green);"></span>
+          </div>
+        </div>
+        <div id="qbCustTable" style="overflow-x:auto;max-height:500px;overflow-y:auto;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h3>Proveedores QB</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="qbVendSearch" placeholder="Buscar..." style="padding:5px 10px;border-radius:6px;border:1px solid var(--bg4);background:var(--bg3);color:var(--tx);font-size:12px;width:160px;" oninput="filterQBVendors()">
+            <span class="badge" id="qbVendCount" style="background:rgba(244,114,182,0.15);color:var(--pink);"></span>
+          </div>
+        </div>
+        <div id="qbVendTable" style="overflow-x:auto;max-height:500px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-head">
+          <h3>Facturas Emitidas</h3>
+          <span class="badge" id="qbInvCount" style="background:rgba(245,158,11,0.15);color:var(--amber);"></span>
+        </div>
+        <div id="qbInvTable" style="overflow-x:auto;max-height:500px;overflow-y:auto;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h3>Facturas de Compra (Bills)</h3>
+          <span class="badge" id="qbBillsCount" style="background:rgba(239,68,68,0.15);color:var(--red);"></span>
+        </div>
+        <div id="qbBillsTable" style="overflow-x:auto;max-height:500px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-head">
+          <h3>Cobros (Payments)</h3>
+          <span class="badge" id="qbPayCount" style="background:rgba(34,197,94,0.15);color:var(--green);"></span>
+        </div>
+        <div id="qbPayTable" style="overflow-x:auto;max-height:400px;overflow-y:auto;"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h3>Presupuestos (Estimates)</h3>
+          <span class="badge" id="qbEstCount" style="background:rgba(45,212,191,0.15);color:var(--teal);"></span>
+        </div>
+        <div id="qbEstTable" style="overflow-x:auto;max-height:400px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- AUDIT -->
   <div class="section" id="sec-audit">
     <div id="auditContent"><div class="loading"><div class="spinner"></div>Ejecutando auditoría...</div></div>
@@ -383,7 +519,7 @@ function showTab(id) {
     const match = (id==='overview' && txt.includes('resum')) || 
       (id==='aging' && txt.includes('aging')) || (id==='cxp' && txt==='cxp') ||
       (id==='forecast' && txt.includes('forec')) || (id==='alerts' && txt.includes('alert')) ||
-      (id==='concentration' && txt.includes('concen')) || (id==='audit' && txt.includes('audit'))
+      (id==='concentration' && txt.includes('concen')) || (id==='catalogos' && txt.includes('catálog')) || (id==='quickbooks' && txt.includes('quick')) || (id==='audit' && txt.includes('audit'))
     t.classList.toggle('active', match)
   })
   document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === 'sec-'+id))
@@ -392,6 +528,8 @@ function showTab(id) {
   if(id==='concentration' && !concLoaded) loadConcentration()
   if(id==='alerts' && !alertsLoaded) loadAlerts()
   if(id==='cxp' && !cxpLoaded) loadCxP()
+  if(id==='catalogos' && !catLoaded) loadCatalogos()
+  if(id==='quickbooks' && !qbLoaded) loadQuickBooks()
   if(id==='audit' && !auditLoaded) loadAudit()
 }
 
@@ -404,13 +542,32 @@ async function loadDashboard() {
     const d = await res.json()
     const h = d.financial_health || {}
     
-    // Sync badge
-    const sb = document.getElementById('syncBadge')
-    if(d.last_zeta_sync) {
-      const ago = Math.floor((Date.now() - new Date(d.last_zeta_sync).getTime()) / 3600000)
-      sb.textContent = ago < 24 ? `Zeta sync: ${ago}h` : `Zeta sync: ${Math.floor(ago/24)}d`
-      sb.className = 'sync-badge' + (ago > 24 ? ' stale' : '')
+    // Sync badge — also fetch zeta status for better info
+    const sb2 = document.getElementById('syncBadge')
+    try {
+      const zStatus = await fetch(`${SB_URL}/functions/v1/zeta-sync?action=status`,{headers:hdr}).then(r=>r.json())
+      const lastLog = zStatus.sync_logs?.[0]
+      if(lastLog) {
+        const ago = Math.floor((Date.now() - new Date(lastLog.created_at).getTime()) / 3600000)
+        const totalR = Object.values(zStatus.table_counts||{}).reduce((s,v) => s + (v||0), 0)
+        sb2.textContent = `Zeta v${zStatus.version}: ${fmtK(totalR)} regs · ${ago < 24 ? ago+'h' : Math.floor(ago/24)+'d'}`
+        sb2.className = 'sync-badge' + (ago > 24 ? ' stale' : '')
+      }
+    } catch(e) {
+      if(d.last_zeta_sync) {
+        const ago = Math.floor((Date.now() - new Date(d.last_zeta_sync).getTime()) / 3600000)
+        sb2.textContent = ago < 24 ? `Zeta sync: ${ago}h` : `Zeta sync: ${Math.floor(ago/24)}d`
+        sb2.className = 'sync-badge' + (ago > 24 ? ' stale' : '')
+      }
     }
+    // QB badge
+    try {
+      const qbStatus = await fetch(`${SB_URL}/functions/v1/quickbooks-sync?action=status`,{headers:hdr}).then(r=>r.json())
+      if(qbStatus.connected) {
+        const qbText = `QB: ${fmtK(qbStatus.total_records)} regs`
+        sb2.textContent = sb2.textContent + ' | ' + qbText
+      }
+    } catch(e) {}
 
     // KPIs
     document.getElementById('kpiGrid').innerHTML = `
@@ -693,6 +850,217 @@ document.getElementById('clientModal').addEventListener('click', e => { if(e.tar
 loadDashboard()
 
 // ═══════════════════════════════════════════
+// CATALOGOS ZETA
+// ═══════════════════════════════════════════
+let catLoaded = false
+let allArticulos = [], allProveedoresZ = []
+
+async function loadCatalogos() {
+  try {
+    const ZETA_URL = `${SB_URL}/functions/v1/zeta-sync`
+    const statusRes = await fetch(`${ZETA_URL}?action=status`, {headers:hdr})
+    const status = await statusRes.json()
+    const tc = status.table_counts || {}
+
+    // KPIs
+    const totalRecs = Object.values(tc).reduce((s,v) => s + (v||0), 0)
+    document.getElementById('catKpis').innerHTML = `
+      <div class="kpi blue"><div class="kpi-label">Tablas Zeta</div><div class="kpi-value">${Object.keys(tc).length}</div><div class="kpi-sub">${Object.values(tc).filter(v=>v>0).length} con datos</div></div>
+      <div class="kpi green"><div class="kpi-label">Registros Totales</div><div class="kpi-value">${fmtK(totalRecs)}</div><div class="kpi-sub">v${status.version}</div></div>
+      <div class="kpi purple"><div class="kpi-label">Artículos</div><div class="kpi-value">${fmt(tc.zeta_articulos||0)}</div><div class="kpi-sub">${fmt(tc.zeta_stock_actual||0)} en stock</div></div>
+      <div class="kpi amber"><div class="kpi-label">Contactos</div><div class="kpi-value">${fmt((tc.zeta_clientes||0)+(tc.zeta_proveedores||0))}</div><div class="kpi-sub">${tc.zeta_clientes||0} cli · ${tc.zeta_proveedores||0} prov</div></div>
+    `
+
+    // Load all catalog data via edge function (single call)
+    const catRes = await fetch(`${ZETA_URL}?action=query-catalogos`, {headers:hdr}).then(r=>r.json())
+    const artRes = catRes.articulos || []
+    const stockRes = catRes.stock || []
+    const provRes = catRes.proveedores || []
+    const bankRes = catRes.bancos || []
+    const pcRes = catRes.plan_cuentas || []
+    const ccRes = catRes.centros_costo || []
+    const compRes = catRes.comprobantes || []
+
+    // Store for filtering
+    allArticulos = artRes || []
+    allProveedoresZ = provRes || []
+
+    // Stock table
+    document.getElementById('stockCount').textContent = `${(stockRes||[]).length} items`
+    document.getElementById('stockTable').innerHTML = `<table class="tbl"><thead><tr><th>Código</th><th>Artículo</th><th>Depósito</th><th class="num">Stock</th></tr></thead><tbody>${
+      (stockRes||[]).map(r => `<tr><td class="mono" style="font-size:11px;">${r.articulo_codigo}</td><td>${r.articulo_nombre||''}</td><td>${r.deposito_nombre||''}</td><td class="num">${Number(r.stock_actual||0).toFixed(0)}</td></tr>`).join('')
+    }</tbody></table>`
+
+    // Bank table
+    document.getElementById('bankCount').textContent = `${(bankRes||[]).length} cuentas`
+    document.getElementById('bankTable').innerHTML = `<table class="tbl"><thead><tr><th>#</th><th>Banco</th><th>Número</th><th>Titular</th><th>Mon</th><th>Estado</th></tr></thead><tbody>${
+      (bankRes||[]).map(r => `<tr><td>${r.codigo}</td><td>${r.banco_nombre||''}</td><td class="mono" style="font-size:11px;">${r.numero||''}</td><td>${r.titular||''}</td><td>${r.moneda_simbolo||''}</td><td><span class="risk ${r.cuenta_activa==='S'?'bajo':'critico'}">${r.cuenta_activa==='S'?'Activa':'Inactiva'}</span></td></tr>`).join('')
+    }</tbody></table>`
+
+    // Articulos
+    renderArticulos(allArticulos)
+
+    // Proveedores
+    renderProveedores(allProveedoresZ)
+
+    // Plan de cuentas (only imputables for readability)
+    const imputables = (pcRes||[]).filter(r => r.es_imputable === 'S')
+    document.getElementById('pcCount').textContent = `${(pcRes||[]).length} cuentas (${imputables.length} imput.)`
+    document.getElementById('pcTable').innerHTML = `<table class="tbl"><thead><tr><th>Código</th><th>Nombre</th><th>Nivel</th></tr></thead><tbody>${
+      imputables.slice(0,100).map(r => `<tr><td class="mono" style="font-size:11px;">${r.codigo||''}</td><td>${r.nombre||''}</td><td>${r.nivel||''}</td></tr>`).join('')
+    }</tbody></table>${imputables.length>100?`<div style="padding:8px;color:var(--tx3);font-size:11px;">...y ${imputables.length-100} más</div>`:''}`
+
+    // Centros de costo
+    document.getElementById('ccCount').textContent = `${(ccRes||[]).length}`
+    document.getElementById('ccTable').innerHTML = `<table class="tbl"><thead><tr><th>Código</th><th>Nombre</th></tr></thead><tbody>${
+      (ccRes||[]).map(r => `<tr><td class="mono">${r.codigo||''}</td><td>${r.nombre||''}</td></tr>`).join('')
+    }</tbody></table>`
+
+    // Comprobantes
+    const compActivos = (compRes||[]).filter(r => r.activo === 'S')
+    document.getElementById('compCount').textContent = `${compActivos.length} activos / ${(compRes||[]).length} total`
+    document.getElementById('compTable').innerHTML = `<table class="tbl"><thead><tr><th>#</th><th>Nombre</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>${
+      (compRes||[]).map(r => `<tr><td>${r.codigo}</td><td>${r.nombre||r.abreviacion||''}</td><td style="font-size:11px;color:var(--tx3);">${r.tipo_nombre||r.formato_nombre||''}</td><td><span class="risk ${r.activo==='S'?'bajo':'critico'}" style="font-size:10px;">${r.activo==='S'?'Activo':'Inact.'}</span></td></tr>`).join('')
+    }</tbody></table>`
+
+    catLoaded = true
+  } catch(e) { console.error('Catalogos error:', e) }
+}
+
+function renderArticulos(items) {
+  document.getElementById('artCount').textContent = `${items.length} items`
+  document.getElementById('artTable').innerHTML = `<table class="tbl"><thead><tr><th>Código</th><th>Nombre</th><th>Familia</th><th>Proveedor</th><th class="num">Costo</th><th>Stock</th></tr></thead><tbody>${
+    items.slice(0,200).map(r => `<tr><td class="mono" style="font-size:11px;">${r.codigo||''}</td><td>${(r.nombre||'').substring(0,40)}</td><td style="font-size:11px;color:var(--tx3);">${r.familia_nombre||''}</td><td style="font-size:11px;color:var(--tx3);">${(r.proveedor_nombre||'').substring(0,20)}</td><td class="num">${r.costo>0?`${r.moneda_simbolo||'$'}${fmt(r.costo)}`:'-'}</td><td><span class="risk ${r.contabilizar_stock==='S'?'bajo':'medio'}" style="font-size:10px;">${r.contabilizar_stock==='S'?'Sí':'No'}</span></td></tr>`).join('')
+  }</tbody></table>${items.length>200?`<div style="padding:8px;color:var(--tx3);font-size:11px;">Mostrando 200 de ${items.length}</div>`:''}`
+}
+
+function renderProveedores(items) {
+  document.getElementById('provCount').textContent = `${items.length}`
+  document.getElementById('provTable').innerHTML = `<table class="tbl"><thead><tr><th>Código</th><th>Nombre</th><th>Condición</th><th>IVA</th><th>Estado</th></tr></thead><tbody>${
+    items.map(r => `<tr><td class="mono" style="font-size:11px;">${r.codigo||''}</td><td>${r.nombre||''}</td><td style="font-size:11px;color:var(--tx3);">${r.condicion_nombre||'-'}</td><td>${r.iva==='S'?'Sí':'No'}</td><td><span class="risk ${r.activo==='S'?'bajo':'critico'}" style="font-size:10px;">${r.activo==='S'?'Activo':'Inact.'}</span></td></tr>`).join('')
+  }</tbody></table>`
+}
+
+function filterArticulos() {
+  const q = (document.getElementById('artSearch').value||'').toLowerCase()
+  const filtered = q ? allArticulos.filter(a => (a.nombre||'').toLowerCase().includes(q) || (a.codigo||'').toLowerCase().includes(q) || (a.familia_nombre||'').toLowerCase().includes(q) || (a.proveedor_nombre||'').toLowerCase().includes(q)) : allArticulos
+  renderArticulos(filtered)
+}
+
+function filterProveedores() {
+  const q = (document.getElementById('provSearch').value||'').toLowerCase()
+  const filtered = q ? allProveedoresZ.filter(p => (p.nombre||'').toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q)) : allProveedoresZ
+  renderProveedores(filtered)
+}
+
+// ═══════════════════════════════════════════
+// QUICKBOOKS
+// ═══════════════════════════════════════════
+let qbLoaded = false
+let allQBCustomers = [], allQBVendors = []
+const QB_URL = `${SB_URL}/functions/v1/quickbooks-sync`
+
+async function loadQuickBooks() {
+  try {
+    // Fetch status + data in parallel
+    const [statusRes, dataRes] = await Promise.all([
+      fetch(`${QB_URL}?action=status`,{headers:hdr}).then(r=>r.json()),
+      fetch(`${QB_URL}?action=query-data`,{headers:hdr}).then(r=>r.json()),
+    ])
+
+    const tables = statusRes.tables || {}
+    const totalRecs = statusRes.total_records || 0
+    const connected = statusRes.connected
+
+    // KPIs
+    document.getElementById('qbKpis').innerHTML = `
+      <div class="kpi ${connected?'green':'red'}"><div class="kpi-label">Estado</div><div class="kpi-value sm">${connected?'Conectado':'Desconectado'}</div><div class="kpi-sub">${connected?'Realm: '+statusRes.realm_id:'Sin tokens'}</div></div>
+      <div class="kpi blue"><div class="kpi-label">Registros Totales</div><div class="kpi-value">${fmtK(totalRecs)}</div><div class="kpi-sub">v${statusRes.version} · ${Object.values(tables).filter(v=>v>0).length} tablas con datos</div></div>
+      <div class="kpi purple"><div class="kpi-label">Facturas + Bills</div><div class="kpi-value">${fmt((tables.qb_invoices||0)+(tables.qb_bills||0))}</div><div class="kpi-sub">${tables.qb_invoices||0} ventas · ${tables.qb_bills||0} compras</div></div>
+      <div class="kpi amber"><div class="kpi-label">Última Sync</div><div class="kpi-value sm">${statusRes.last_sync?new Date(statusRes.last_sync.at).toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'}):'—'}</div><div class="kpi-sub">${statusRes.last_sync?statusRes.last_sync.records+' registros':'Sin sincronizar'}</div></div>
+    `
+
+    // Accounts table
+    const accounts = dataRes.accounts || []
+    document.getElementById('qbAccCount').textContent = `${accounts.length}`
+    document.getElementById('qbAccTable').innerHTML = `<table class="tbl"><thead><tr><th>Nombre</th><th>Tipo</th><th>Subtipo</th><th>Clasificación</th><th class="num">Balance</th><th>Estado</th></tr></thead><tbody>${
+      accounts.map(r => `<tr><td>${r.name||''}</td><td style="font-size:11px;">${r.account_type||''}</td><td style="font-size:11px;color:var(--tx3);">${r.account_sub_type||''}</td><td style="font-size:11px;">${r.classification||''}</td><td class="num">${fmt(r.current_balance,2)}</td><td><span class="risk ${r.active?'bajo':'critico'}" style="font-size:10px;">${r.active?'Activa':'Inact.'}</span></td></tr>`).join('')
+    }</tbody></table>`
+
+    // Items table
+    const items = dataRes.items || []
+    document.getElementById('qbItemsCount').textContent = `${items.length}`
+    document.getElementById('qbItemsTable').innerHTML = `<table class="tbl"><thead><tr><th>Nombre</th><th>Tipo</th><th class="num">Precio</th><th class="num">Costo</th><th class="num">Stock</th><th>Estado</th></tr></thead><tbody>${
+      items.map(r => `<tr><td>${r.name||''}</td><td style="font-size:11px;">${r.item_type||''}</td><td class="num">${r.unit_price>0?'$'+fmt(r.unit_price,2):'-'}</td><td class="num">${r.purchase_cost>0?'$'+fmt(r.purchase_cost,2):'-'}</td><td class="num">${r.qty_on_hand>0?fmt(r.qty_on_hand):'-'}</td><td><span class="risk ${r.active?'bajo':'critico'}" style="font-size:10px;">${r.active?'Activo':'Inact.'}</span></td></tr>`).join('')
+    }</tbody></table>`
+
+    // Customers
+    allQBCustomers = dataRes.customers || []
+    renderQBCustomers(allQBCustomers)
+
+    // Vendors
+    allQBVendors = dataRes.vendors || []
+    renderQBVendors(allQBVendors)
+
+    // Invoices
+    const invoices = dataRes.invoices || []
+    document.getElementById('qbInvCount').textContent = `${invoices.length}`
+    document.getElementById('qbInvTable').innerHTML = invoices.length ? `<table class="tbl"><thead><tr><th>#</th><th>Fecha</th><th>Cliente</th><th class="num">Total</th><th class="num">Saldo</th><th>Email</th></tr></thead><tbody>${
+      invoices.map(r => `<tr><td class="mono" style="font-size:11px;">${r.doc_number||''}</td><td>${r.txn_date||''}</td><td>${r.customer_name||''}</td><td class="num">$${fmt(r.total_amt,2)}</td><td class="num ${r.balance>0?'':'ok'}">$${fmt(r.balance,2)}</td><td style="font-size:11px;color:var(--tx3);">${r.email_status||''}</td></tr>`).join('')
+    }</tbody></table>` : '<div style="color:var(--tx3);padding:20px;text-align:center;">Sin facturas</div>'
+
+    // Bills
+    const bills = dataRes.bills || []
+    document.getElementById('qbBillsCount').textContent = `${bills.length}`
+    document.getElementById('qbBillsTable').innerHTML = bills.length ? `<table class="tbl"><thead><tr><th>#</th><th>Fecha</th><th>Proveedor</th><th class="num">Total</th><th class="num">Saldo</th></tr></thead><tbody>${
+      bills.map(r => `<tr><td class="mono" style="font-size:11px;">${r.doc_number||''}</td><td>${r.txn_date||''}</td><td>${r.vendor_name||''}</td><td class="num">$${fmt(r.total_amt,2)}</td><td class="num">$${fmt(r.balance,2)}</td></tr>`).join('')
+    }</tbody></table>` : '<div style="color:var(--tx3);padding:20px;text-align:center;">Sin bills</div>'
+
+    // Payments
+    const payments = dataRes.payments || []
+    document.getElementById('qbPayCount').textContent = `${payments.length}`
+    document.getElementById('qbPayTable').innerHTML = payments.length ? `<table class="tbl"><thead><tr><th>Fecha</th><th>Cliente</th><th class="num">Monto</th><th class="num">Sin aplicar</th></tr></thead><tbody>${
+      payments.map(r => `<tr><td>${r.txn_date||''}</td><td>${r.customer_name||''}</td><td class="num">$${fmt(r.total_amt,2)}</td><td class="num">$${fmt(r.unapplied_amt,2)}</td></tr>`).join('')
+    }</tbody></table>` : '<div style="color:var(--tx3);padding:20px;text-align:center;">Sin pagos</div>'
+
+    // Estimates
+    const estimates = dataRes.estimates || []
+    document.getElementById('qbEstCount').textContent = `${estimates.length}`
+    document.getElementById('qbEstTable').innerHTML = estimates.length ? `<table class="tbl"><thead><tr><th>#</th><th>Fecha</th><th>Cliente</th><th class="num">Total</th><th>Estado</th></tr></thead><tbody>${
+      estimates.map(r => `<tr><td class="mono" style="font-size:11px;">${r.doc_number||''}</td><td>${r.txn_date||''}</td><td>${r.customer_name||''}</td><td class="num">$${fmt(r.total_amt,2)}</td><td><span class="risk ${r.txn_status==='Accepted'?'bajo':r.txn_status==='Pending'?'medio':'alto'}" style="font-size:10px;">${r.txn_status||'-'}</span></td></tr>`).join('')
+    }</tbody></table>` : '<div style="color:var(--tx3);padding:20px;text-align:center;">Sin presupuestos</div>'
+
+    qbLoaded = true
+  } catch(e) { console.error('QuickBooks error:', e) }
+}
+
+function renderQBCustomers(items) {
+  document.getElementById('qbCustCount').textContent = `${items.length}`
+  document.getElementById('qbCustTable').innerHTML = items.length ? `<table class="tbl"><thead><tr><th>Nombre</th><th>Empresa</th><th>Email</th><th>Teléfono</th><th class="num">Balance</th><th>Estado</th></tr></thead><tbody>${
+    items.map(r => `<tr><td>${r.display_name||''}</td><td style="font-size:11px;color:var(--tx3);">${r.company_name||''}</td><td style="font-size:11px;">${r.email||''}</td><td style="font-size:11px;">${r.phone||''}</td><td class="num">$${fmt(r.balance,2)}</td><td><span class="risk ${r.active?'bajo':'critico'}" style="font-size:10px;">${r.active?'Activo':'Inact.'}</span></td></tr>`).join('')
+  }</tbody></table>` : '<div style="color:var(--tx3);padding:20px;text-align:center;">Sin clientes</div>'
+}
+
+function renderQBVendors(items) {
+  document.getElementById('qbVendCount').textContent = `${items.length}`
+  document.getElementById('qbVendTable').innerHTML = items.length ? `<table class="tbl"><thead><tr><th>Nombre</th><th>Empresa</th><th>Email</th><th>Teléfono</th><th class="num">Balance</th><th>Estado</th></tr></thead><tbody>${
+    items.map(r => `<tr><td>${r.display_name||''}</td><td style="font-size:11px;color:var(--tx3);">${r.company_name||''}</td><td style="font-size:11px;">${r.email||''}</td><td style="font-size:11px;">${r.phone||''}</td><td class="num">$${fmt(r.balance,2)}</td><td><span class="risk ${r.active?'bajo':'critico'}" style="font-size:10px;">${r.active?'Activo':'Inact.'}</span></td></tr>`).join('')
+  }</tbody></table>` : '<div style="color:var(--tx3);padding:20px;text-align:center;">Sin proveedores</div>'
+}
+
+function filterQBCustomers() {
+  const q = (document.getElementById('qbCustSearch').value||'').toLowerCase()
+  const filtered = q ? allQBCustomers.filter(c => (c.display_name||'').toLowerCase().includes(q) || (c.company_name||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q)) : allQBCustomers
+  renderQBCustomers(filtered)
+}
+
+function filterQBVendors() {
+  const q = (document.getElementById('qbVendSearch').value||'').toLowerCase()
+  const filtered = q ? allQBVendors.filter(v => (v.display_name||'').toLowerCase().includes(q) || (v.company_name||'').toLowerCase().includes(q)) : allQBVendors
+  renderQBVendors(filtered)
+}
+
+// ═══════════════════════════════════════════
 // AUDIT - Data Quality
 // ═══════════════════════════════════════════
 let auditLoaded = false
@@ -701,18 +1069,22 @@ async function loadAudit() {
   const el = document.getElementById('auditContent')
   try {
     // Fetch all needed data in parallel
-    const [syncRes, agingRes, concRes] = await Promise.all([
-      fetch(`${FIN_URL}?action=sync-status`,{headers:hdr}).then(r=>r.json()),
+    const [syncRes, agingRes, concRes, qbRes] = await Promise.all([
+      fetch(`${SB_URL}/functions/v1/zeta-sync?action=status`,{headers:hdr}).then(r=>r.json()),
       fetch(`${INT_URL}?action=aging`,{headers:hdr}).then(r=>r.json()),
       fetch(`${INT_URL}?action=concentration`,{headers:hdr}).then(r=>r.json()),
+      fetch(`${SB_URL}/functions/v1/quickbooks-sync?action=status`,{headers:hdr}).then(r=>r.json()).catch(()=>({connected:false,tables:{},total_records:0})),
     ])
 
     const tc = syncRes.table_counts || {}
     const lastSync = syncRes.sync_logs?.[0]
     const agTotals = agingRes.totals || {}
-    const totalTables = 12
-    const withData = Object.values(tc).filter(v => v > 0).length
+    const qbTc = qbRes.tables || {}
+    const allTc = {...tc, ...qbTc}
+    const totalTables = Object.keys(allTc).length
+    const withData = Object.values(allTc).filter(v => v > 0).length
     const completePct = Math.round(withData / totalTables * 100)
+    const totalRecs = Object.values(allTc).reduce((s,v) => s + (v||0), 0)
 
     // Check data freshness
     const syncAge = lastSync ? Math.floor((Date.now() - new Date(lastSync.created_at).getTime()) / 3600000) : 999
@@ -771,32 +1143,72 @@ async function loadAudit() {
     ${invRow('Cotizaciones', tc.zeta_cotizaciones, 'Tipos de cambio del día')}
     </tbody></table>
 
-    <!-- Hallazgos críticos -->
-    <div class="audit-h2">🚨 Hallazgos Críticos</div>
+    <div class="audit-h2">📦 Catálogos / Maestros (v2.3)</div>
+    <table class="audit-inv"><thead><tr><th>Tabla</th><th class="num">Registros</th><th>Qué contiene</th><th>Estado</th></tr></thead><tbody>
+    ${invRow('Artículos', tc.zeta_articulos, 'Catálogo de productos/materiales', 10)}
+    ${invRow('Clientes', tc.zeta_clientes, 'Datos comerciales de clientes', 5)}
+    ${invRow('Proveedores', tc.zeta_proveedores, 'Datos comerciales de proveedores', 5)}
+    ${invRow('Stock Actual', tc.zeta_stock_actual, 'Stock en depósitos por artículo', 1)}
+    ${invRow('Plan de Cuentas', tc.zeta_plan_cuentas, 'Plan contable completo', 10)}
+    ${invRow('Cuentas Bancarias', tc.zeta_cuentas_bancarias, 'Cuentas del banco', 1)}
+    ${invRow('Centros de Costo', tc.zeta_centros_costo, 'Centros de costo contable', 1)}
+    ${invRow('Monedas', tc.zeta_monedas, 'Monedas habilitadas', 1)}
+    ${invRow('Comprobantes', tc.zeta_comprobantes, 'Tipos de comprobante', 5)}
+    </tbody></table>
+
+    <div class="audit-h2">📦 QuickBooks Online (v${qbRes.version||'1.0'})</div>
+    <table class="audit-inv"><thead><tr><th>Tabla</th><th class="num">Registros</th><th>Qué contiene</th><th>Estado</th></tr></thead><tbody>
+    ${invRow('QB Accounts', (qbRes.tables||{}).qb_accounts, 'Plan de cuentas QuickBooks')}
+    ${invRow('QB Customers', (qbRes.tables||{}).qb_customers, 'Clientes QuickBooks')}
+    ${invRow('QB Vendors', (qbRes.tables||{}).qb_vendors, 'Proveedores QuickBooks')}
+    ${invRow('QB Items', (qbRes.tables||{}).qb_items, 'Productos/Servicios')}
+    ${invRow('QB Invoices', (qbRes.tables||{}).qb_invoices, 'Facturas de venta')}
+    ${invRow('QB Bills', (qbRes.tables||{}).qb_bills, 'Facturas de compra')}
+    ${invRow('QB Payments', (qbRes.tables||{}).qb_payments, 'Cobros recibidos')}
+    ${invRow('QB Estimates', (qbRes.tables||{}).qb_estimates, 'Presupuestos')}
+    </tbody></table>
+
+    <!-- Hallazgos dinámicos -->
+    <div class="audit-h2">🔎 Hallazgos</div>
 
     ${cobros<=1 ? `<div class="finding f-critical">
-      <div class="finding-head"><div class="finding-title">Solo ${cobros} cobro(s) registrados en el sistema</div><span class="risk critico">CRÍTICO</span></div>
-      <p>Hay 135 facturas de CxC desde 2023, pero solo ${cobros} recibo de cobranza. Es imposible que en 2.5 años se haya cobrado solo una vez. Sin esto el forecast es una estimación ciega.</p>
-      <div class="act"><b>Acción en Zeta:</b> Verificar si se emiten recibos de cobranza. La API puede necesitar un rango de fechas más amplio.</div>
-    </div>` : ''}
+      <div class="finding-head"><div class="finding-title">Solo ${cobros} cobro(s) registrados</div><span class="risk critico">CRÍTICO</span></div>
+      <p>Sin recibos de cobranza el forecast es estimación ciega.</p>
+      <div class="act"><b>Acción:</b> Verificar en Zeta si se emiten recibos de cobranza.</div>
+    </div>` : cobros < 50 ? `<div class="finding f-info">
+      <div class="finding-head"><div class="finding-title">Cobros: ${cobros} recibos sincronizados</div><span class="risk medio">INFO</span></div>
+      <p>Los recibos de cobranza están siendo capturados. Verificar que se registren todos los cobros en Zeta.</p>
+    </div>` : `<div class="finding f-ok">
+      <div class="finding-head"><div class="finding-title">Cobros: ${cobros} recibos</div><span class="risk bajo">OK</span></div>
+      <p>Base de datos de cobranza con historial completo.</p>
+    </div>`}
 
     ${ventas<=15 ? `<div class="finding f-critical">
-      <div class="finding-head"><div class="finding-title">Ventas: solo ${ventas} líneas (ene-feb 2026)</div><span class="risk critico">CRÍTICO</span></div>
-      <p>No hay ventas históricas. La CxC tiene facturas desde 2023, pero la API de ventas solo trajo datos recientes. No se pueden analizar tendencias ni estacionalidad.</p>
-      <div class="act"><b>Acción en Zeta:</b> Verificar si la API tiene filtro de fecha. Necesitamos al menos 12 meses de historial.</div>
-    </div>` : ''}
-
-    ${bancos===0 ? `<div class="finding f-critical">
-      <div class="finding-head"><div class="finding-title">Movimientos bancarios: vacío</div><span class="risk critico">CRÍTICO</span></div>
-      <p>Los saldos del banco están cargados a mano y se desactualizan. Sin movimientos automáticos, el cash balance no es confiable.</p>
-      <div class="act"><b>Acción en Zeta:</b> Verificar si la API de movimientos bancarios está habilitada.</div>
-    </div>` : ''}
+      <div class="finding-head"><div class="finding-title">Ventas: solo ${ventas} líneas</div><span class="risk critico">CRÍTICO</span></div>
+      <p>Insuficiente para análisis de tendencias.</p>
+    </div>` : ventas < 100 ? `<div class="finding f-warning">
+      <div class="finding-head"><div class="finding-title">Ventas: ${ventas} líneas</div><span class="risk alto">ALERTA</span></div>
+      <p>Datos limitados. Se recomienda sync-full para traer historial completo.</p>
+    </div>` : `<div class="finding f-ok">
+      <div class="finding-head"><div class="finding-title">Ventas: ${ventas} líneas detalladas</div><span class="risk bajo">OK</span></div>
+      <p>Historial de ventas completo desde 2020.</p>
+    </div>`}
 
     ${compras<=5 ? `<div class="finding f-critical">
       <div class="finding-head"><div class="finding-title">Compras: solo ${compras} registro(s)</div><span class="risk critico">CRÍTICO</span></div>
-      <p>254 comprobantes de CxP pero solo ${compras} compra detallada. No se pueden analizar costos ni márgenes.</p>
-      <div class="act"><b>Acción en Zeta:</b> Mismo problema que ventas. Ampliar rango de fechas de la API.</div>
-    </div>` : ''}
+      <p>Imposible analizar costos y márgenes.</p>
+    </div>` : `<div class="finding f-ok">
+      <div class="finding-head"><div class="finding-title">Compras: ${compras} líneas detalladas</div><span class="risk bajo">OK</span></div>
+      <p>Historial de compras completo.</p>
+    </div>`}
+
+    ${bancos===0 ? `<div class="finding f-critical">
+      <div class="finding-head"><div class="finding-title">Movimientos bancarios: vacío</div><span class="risk critico">CRÍTICO</span></div>
+      <p>Sin movimientos automáticos del banco.</p>
+    </div>` : `<div class="finding f-ok">
+      <div class="finding-head"><div class="finding-title">Movimientos bancarios: ${bancos} registros</div><span class="risk bajo">OK</span></div>
+      <p>Movimientos bancarios sincronizados.</p>
+    </div>`}
 
     <!-- Hallazgos warning -->
     <div class="audit-h2">⚠️ Alertas</div>
@@ -821,31 +1233,37 @@ async function loadAudit() {
     <div class="audit-h2">💣 ¿Qué Datos Son Confiables?</div>
     <div class="grid g2">
       <div class="trust-box good">
-        <h4 style="color:var(--green)">✅ Confiable hoy</h4>
+        <h4 style="color:var(--green)">✅ Confiable</h4>
         <p>• <b>CxC por cliente</b> — saldos completos de Zeta</p>
         <p>• <b>Aging / antigüedad</b> — clasificación por tramo correcta</p>
         <p>• <b>Concentración</b> — HHI y Pareto sobre datos reales</p>
         <p>• <b>Alertas de CxC</b> — detección de morosos correcta</p>
+        ${ventas>100?'<p>• <b>Ventas detalladas</b> — historial completo desde 2020</p>':''}
+        ${compras>100?'<p>• <b>Compras detalladas</b> — historial completo</p>':''}
+        ${bancos>0?'<p>• <b>Movimientos bancarios</b> — sincronizados</p>':''}
+        ${cobros>10?'<p>• <b>Recibos cobranza</b> — historial de cobros</p>':''}
+        <p>• <b>Catálogos</b> — artículos, proveedores, plan cuentas, stock</p>
+        ${qbRes.connected?'<p>• <b>QuickBooks</b> — conectado, '+qbRes.total_records+' registros sincronizados</p>':''}
       </div>
-      <div class="trust-box bad">
-        <h4 style="color:var(--red)">❌ No confiable</h4>
-        <p>• <b>Cash balance</b> — saldos bancarios manuales, posible error moneda</p>
-        <p>• <b>Días de operación</b> — depende del cash</p>
-        <p>• <b>Forecast</b> — sin datos reales de cobranza</p>
-        <p>• <b>CxP</b> — posiblemente desactualizada, facturas de 2020</p>
-        <p>• <b>Facturación mensual</b> — solo 2 meses de datos</p>
+      <div class="trust-box ${(ventas>100&&bancos>0)?'good':'bad'}">
+        <h4 style="color:${(ventas>100&&bancos>0)?'var(--amber)':'var(--red)'};">${(ventas>100&&bancos>0)?'⚠️ Verificar':'❌ No confiable'}</h4>
+        ${cotiz===0?'<p>• <b>Tipo de cambio</b> — TC fijo, sin cotizaciones automáticas</p>':''}
+        ${pagos===0?'<p>• <b>Pagos a proveedores</b> — sin recibos de pago</p>':''}
+        ${cuotasC===0&&cuotasP===0?'<p>• <b>Cuotas</b> — sin planes de pago registrados</p>':''}
+        ${caja<=2?'<p>• <b>Caja chica</b> — casi sin movimientos</p>':''}
+        <p>• <b>Forecast</b> — mejorable con más datos de cobranza real</p>
       </div>
     </div>
 
-    <!-- Plan de acción -->
+    <!-- Plan de acción dinámico -->
     <div class="audit-h2">🎯 Plan de Acción</div>
     <div class="pri-list">
-      <div class="pri-item"><h4>Verificar datos en Zeta: cobros, ventas, compras</h4><p>¿Se emiten recibos? ¿La API tiene filtro de fecha? Esto es fundamental.</p><span class="eff med">Depende de Zeta</span></div>
-      <div class="pri-item"><h4>Corregir moneda cuenta Itaú UYU</h4><p>Cambiar currency de "USD" a "UYU" y actualizar saldos bancarios al día.</p><span class="eff low">5 minutos</span></div>
-      <div class="pri-item"><h4>Revisar saldo mayor deudor</h4><p>¿Es real? ¿Hubo cobros parciales? Si no es cobrable, provisionar al 100%.</p><span class="eff med">Decisión tuya</span></div>
-      <div class="pri-item"><h4>Ampliar rango de fechas en API Zeta</h4><p>Para tener al menos 12 meses de ventas y compras históricas.</p><span class="eff low">15 minutos</span></div>
+      ${cotiz===0 ? '<div class="pri-item"><h4>Activar cotizaciones automáticas</h4><p>TC fijo puede desfasar conversiones multi-moneda.</p><span class="eff low">Config en Zeta</span></div>' : ''}
+      ${pagos===0 ? '<div class="pri-item"><h4>Registrar pagos a proveedores en Zeta</h4><p>Sin recibos de pago no se puede verificar si la CxP está al día.</p><span class="eff med">Depende de Zeta</span></div>' : ''}
+      ${concRes.clientes?.[0]?.pct > 40 ? '<div class="pri-item"><h4>Revisar saldo del mayor deudor</h4><p>¿Es real? ¿Hubo cobros parciales? Si es incobrable, provisionar al 100%.</p><span class="eff med">Decisión humana</span></div>' : ''}
       <div class="pri-item"><h4>Limpiar CxP antigua</h4><p>Revisar deudas de 2020 en Zeta. Si ya se pagaron, cancelar comprobantes.</p><span class="eff med">Depende de Zeta</span></div>
-      <div class="pri-item"><h4>Activar movimientos bancarios</h4><p>Para que los saldos se actualicen solos cada 6 horas.</p><span class="eff med">Depende de Zeta</span></div>
+      ${!qbRes.connected ? '<div class="pri-item"><h4>Conectar QuickBooks Online</h4><p>Autorizar la integración para sincronizar contabilidad desde QuickBooks.</p><span class="eff med">OAuth 2.0</span></div>' : ''}
+      <div class="pri-item"><h4>Ejecutar sync periódicamente</h4><p>Mantener historial completo sincronizado. Actualmente ${totalRecs} registros en ${withData} tablas (Zeta + QB).</p><span class="eff low">Automático</span></div>
     </div>
     `
     auditLoaded = true
